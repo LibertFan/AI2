@@ -769,8 +769,9 @@ def parseAgentArgs(str):
         opts[key] = val
     return opts
 
-
-def readCommand(argv):
+def readCommand( argv = None, dict_argv = None ):
+#def readCommand(argv = None):
+    #Param_Weights = None
     """
     Processes the command used to run pacman from the command line.
     """
@@ -835,13 +836,43 @@ def readCommand(argv):
                       help=default('How many episodes are training (suppresses output)'), default=0)
     parser.add_option('-c', '--catchExceptions', action='store_true', default=False,
                       help='Catch exceptions and enforce time limits')
-
-    options, otherjunk = parser.parse_args(argv)
-    print "="*25,"options","="*25
-
-    print options
-    print "="*25,"otherjunk","="*25
-    print otherjunk
+    """
+    parser.add_option('-W','--Param_Weights',type='dict',help='Weights for paramerters in the following class',\
+                      default= ({'eats-invader':round(random.random()*10,2), 'invaders-1-step-away':round(random.random()*5,2),\
+                      'teammateDist':round(random.random()*5,2), 'closest-food':round(-random.random()*5,2),\
+                      'eats-capsules':round(random.random()*20,2), '#-of-dangerous-ghosts-1-step-away':round(-random.random()*40,2),\
+                      'eats-ghost':round(random.random()*3,2), '#-of-harmless-ghosts-1-step-away':round(random.random(),2),\
+                      'stopped':round(-random.random()*10,2), 'eats-food':round(random.random()*3,2) },\
+                      {'eats-invader':round(random.random()*10,2), 'invaders-1-step-away':round(random.random()*5,2),\
+                      'teammateDist': round(random.random()*5,2), 'closest-food':round(-random.random()*5,2),\
+                      'eats-capsules':round(random.random()*20,2), '#-of-dangerous-ghosts-1-step-away':round(-random.random()*40,2),\
+                      'eats-ghost':round(random.random()*3,2), '#-of-harmless-ghosts-1-step-away':round(random.random(),2),\
+                      'stopped':round(-random.random()*10,2), 'eats-food':round(random.random()*3,2)}) ) 
+    """
+    if dict_argv is None:
+        options, otherjunk = parser.parse_args(argv)  
+        Param_Weights_1 = None
+        Param_Weights_2 = None
+    else:
+        options = dict_argv
+        Param_Weights_1 = options.Param_Weights_1
+        Param_Weights_2 = options.Param_Weights_2
+        otherjunk = []
+    """   
+    if Param_Weights is None:
+        Param_Weights_1 = None
+        Param_Weights_2 = None
+    else:
+        Param_Weights_1, Param_Weights_2 = Param_Weights
+    print Param_Weights_1, Param_Weights_2    
+    """
+    #else:
+    #  options = dict_argv
+    #  otherjunk = []
+    #print "="*25,"options","="*25
+    #print "options:",options
+    #print "="*25,"otherjunk","="*25
+    #print "otherjunk:",otherjunk
     assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)
     args = dict()
 
@@ -882,22 +913,30 @@ def readCommand(argv):
         replayGame(**recorded)
         sys.exit(0)
 
-    # Choose a pacman agent
-    print "options.redOpts:",options.redOpts
+    #Choose a pacman agent
+    #print "options.redOpts:",options.redOpts
     redArgs, blueArgs = parseAgentArgs(options.redOpts), parseAgentArgs(options.blueOpts)
-    print "options.redOpts:", options.redOpts, "redArgs", redArgs
+    #print "options.redOpts:", options.redOpts, "redArgs", redArgs
     if options.numTraining > 0:
         redArgs['numTraining'] = options.numTraining
         blueArgs['numTraining'] = options.numTraining
-    print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
+    #print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
   
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
     print "nokeyboard:",nokeyboard
     print '\nRed team %s with %s:' % (options.red, redArgs)
     print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
-    redAgents = loadAgents(True, options.red, nokeyboard, redArgs)
+    #try: 
+    redAgents = loadAgents(True, options.red, nokeyboard, redArgs, Param_Weights_1 = None, Param_Weights_2 = None)
+    #except:
+    #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
+         
     print '\nBlue team %s with %s:' % (options.blue, blueArgs)
-    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs)
+    #try: 
+    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = None, Param_Weights_2 = None)
+    #except:
+    #    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs )
+
     args['agents'] = sum([list(el) for el in zip(redAgents, blueAgents)], [])  # list of agents
 
     numKeyboardAgents = 0
@@ -930,10 +969,16 @@ def readCommand(argv):
 
     args['layouts'] = layouts
     args['length'] = options.time
-    args['numGames'] = options.numGam es
+    args['numGames'] = options.numGames
     args['numTraining'] = options.numTraining
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
+    if argv is not None:
+        args['serial_num'] = None
+    else:
+        args['serial_num'] = options.serial_num 
+    #except:
+    #    pass   
     return args
 
 
@@ -949,7 +994,7 @@ def randomLayout(seed=None):
 import traceback
 
 
-def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
+def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None, Param_Weights_2 = None):
     "Calls agent factories and returns lists of agents"
     try:
         if not factory.endswith(".py"):
@@ -981,11 +1026,13 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
     if not isRed:
         indexAddend = 1
     indices = [2 * i + indexAddend for i in range(2)]
-    print "load_agent, indices", indices 
-    agent1, agent2 = createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = [5,5,5] )
-    print agent1.index, agent2.index, agent1.Param_Weights, agent2.Param_Weights
+
+    #print "load_agent, indices", indices 
+    #agent1, agent2 = createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2 )
+    #print agent1.index, agent2.index, agent1.Param_Weights, agent2.Param_Weights
     #print "agents", agent_list
-    return createTeamFunc(indices[0], indices[1], isRed, **args)
+
+    return createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2 )
 
 
 def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamName):
@@ -1008,7 +1055,7 @@ def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamNa
 
 
 def runGames(layouts, agents, display, length, numGames, record, numTraining, redTeamName, blueTeamName,
-             muteAgents=False, catchExceptions=False):
+             muteAgents=False, catchExceptions=False, serial_num = None):
     rules = CaptureRules()
     games = []
 
@@ -1026,7 +1073,7 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         else:
             gameDisplay = display
             rules.quiet = False
-        g = rules.newGame(layout, agents, gameDisplay, length, muteAgents, catchExceptions)
+        g = rules.newGame(layout, agents, gameDisplay, length, muteAgents, catchExceptions )
         g.run()
         if not beQuiet: games.append(g)
 
@@ -1052,54 +1099,70 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
         print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
         print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
-    return games
 
+    return games, serial_num
 
 def save_score(game):
     with open('score', 'w') as f:
         print >> f, game.state.data.score
 
+def MP( dict_argv = None ):
+    option = readCommand( dict_argv = dict_argv )
+    return runGames(**option)      
 
-if __name__ == '__main__':
+def MP1(argv):
+    option = readCommand( argv )
+    return runGames(**option)  
 
-    """
-    The main function called when pacman.py is run
-    from the command line:
-    > python capture.py
-    See the usage string for more details.
-    > python capture.py --help
-    """
+#if __name__ == '__main__':
+
     
-    import random, copy
-    from pathos import multiprocessing as mp
-    random.seed(10)
+    #import random, copy
+    #from pathos import multiprocessing as mp
+    #random.seed(10)
+    #from EvolutionAlgorithm import EvolutionAlgorithm
+    #ea = EvolutionAlgorithm( BasicAgent = "baselineTeam", EnemiesAgentList = [ "baselineTeam", ])
+    #agent_weights_dict_1 = ea.set_initial_weights()
+    #agent_weights_dict_2 = ea.set_initial_weights()
+    #print agent_weights_dict_1 
+    #argv_list = ea.convert_weights_to_option( agent_weights_dict )
     #print sys.argv[1:]
     #print type(sys.argv[1:])
-    command = ["-q"]
-    print "&"*50
-    options = readCommand(sys.argv[1:])  # Get game components based on input
-    #options = readCommand(command) 
-    print options
-    """  
-    options_list = [ options , copy.deepcopy(options), copy.deepcopy(options) ]
-    p = mp.ProcessPool( 4 )
-    t1 = time.time()
+    #command = ["-q"]
+    #sa = sys.argv[1:]
+    #print type(sa), sa 
+    #print "&"*50
+    #options = readCommand(sys.argv[1:])  # Get game components based on input
+    #from EvolutionAlgorithm import Options
+    #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
+    #commands = readCommand( options ) 
+    #print commands
+    #print argv[1:]  
+    #options_list = [ readCommand(sys.argv[1:]) , readCommand(sys.argv[1:]), readCommand(sys.argv[1:]) ]
+    #print options_list
+    
+    #p = mp.ProcessPool( 4 )
+    #t1 = time.time()
                                 
-    ActionSeriesLists = []
-    results = []
-    for o in options_list:
-        results.append( p.apipe( runGames, **o  ) ) 
-    for r in results:
-        ActionSeriesLists.append( r.get() )
-    for v in ActionSeriesLists:
-        print v
-    """
-    #print type(options), options
-    games = runGames(**options)
-    print games
-    print games[0].state.data.score
-    print "+"*50
-    save_score(games[0])
+    #results = []
+    #games = []
+    #for i in range(4):
+    #    results.append( p.apipe( MP1, sys.argv[1:] ) ) 
+    #for r in results:
+    #    games.append( r.get() )
+    #for v in games:
+    #    print v[0][0].state.data.score
+    
+    #print type(options), options 
+    #games, serial_num = runGames(**commands)
+     
+    #print len(games),serial_num
+    #print "="*50
+    #for game in games:
+    #	print game.state.data.score
+    #print "+"*50
+    #"""
+    #save_score(games[0])
     #import cProfile
     #cProfile.run('runGames( **options )', 'profile')
 
