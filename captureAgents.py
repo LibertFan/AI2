@@ -70,7 +70,8 @@ class CaptureAgent(Agent):
     # Agent index for querying state
     self.index = index
     self.Param_Weights = Param_Weights
-
+    #print "self.Param_Weights"
+    #print self.Param_Weights
     # Whether or not you're on the red team
     self.red = None
 
