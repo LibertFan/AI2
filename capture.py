@@ -837,6 +837,11 @@ def readCommand(argv):
                       help='Catch exceptions and enforce time limits')
 
     options, otherjunk = parser.parse_args(argv)
+    print "="*25,"options","="*25
+
+    print options
+    print "="*25,"otherjunk","="*25
+    print otherjunk
     assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)
     args = dict()
 
@@ -878,12 +883,18 @@ def readCommand(argv):
         sys.exit(0)
 
     # Choose a pacman agent
+    print "options.redOpts:",options.redOpts
     redArgs, blueArgs = parseAgentArgs(options.redOpts), parseAgentArgs(options.blueOpts)
+    print "options.redOpts:", options.redOpts, "redArgs", redArgs
     if options.numTraining > 0:
         redArgs['numTraining'] = options.numTraining
         blueArgs['numTraining'] = options.numTraining
+    print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
+  
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
+    print "nokeyboard:",nokeyboard
     print '\nRed team %s with %s:' % (options.red, redArgs)
+    print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
     redAgents = loadAgents(True, options.red, nokeyboard, redArgs)
     print '\nBlue team %s with %s:' % (options.blue, blueArgs)
     blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs)
@@ -905,7 +916,7 @@ def readCommand(argv):
     import layout
     layouts = []
     for i in range(options.numGames):
-        if options.layout == 'RANDOM':
+        if options.layout == 'RANDOM': 
             l = layout.Layout(randomLayout().split('\n'))
         elif options.layout.startswith('RANDOM'):
             l = layout.Layout(randomLayout(int(options.layout[6:])).split('\n'))
@@ -919,7 +930,7 @@ def readCommand(argv):
 
     args['layouts'] = layouts
     args['length'] = options.time
-    args['numGames'] = options.numGames
+    args['numGames'] = options.numGam es
     args['numTraining'] = options.numTraining
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
@@ -970,6 +981,10 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
     if not isRed:
         indexAddend = 1
     indices = [2 * i + indexAddend for i in range(2)]
+    print "load_agent, indices", indices 
+    agent1, agent2 = createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = [5,5,5] )
+    print agent1.index, agent2.index, agent1.Param_Weights, agent2.Param_Weights
+    #print "agents", agent_list
     return createTeamFunc(indices[0], indices[1], isRed, **args)
 
 
@@ -1054,10 +1069,18 @@ if __name__ == '__main__':
     See the usage string for more details.
     > python capture.py --help
     """
+    
     import random, copy
     from pathos import multiprocessing as mp
     random.seed(10)
+    #print sys.argv[1:]
+    #print type(sys.argv[1:])
+    command = ["-q"]
+    print "&"*50
     options = readCommand(sys.argv[1:])  # Get game components based on input
+    #options = readCommand(command) 
+    print options
+    """  
     options_list = [ options , copy.deepcopy(options), copy.deepcopy(options) ]
     p = mp.ProcessPool( 4 )
     t1 = time.time()
@@ -1070,9 +1093,24 @@ if __name__ == '__main__':
         ActionSeriesLists.append( r.get() )
     for v in ActionSeriesLists:
         print v
+    """
     #print type(options), options
-    #games = runGames(**options)
+    games = runGames(**options)
+    print games
+    print games[0].state.data.score
+    print "+"*50
+    save_score(games[0])
+    #import cProfile
+    #cProfile.run('runGames( **options )', 'profile')
 
-    #save_score(games[0])
-    # import cProfile
-    # cProfile.run('runGames( **options )', 'profile')
+
+
+
+
+
+
+
+
+
+
+
