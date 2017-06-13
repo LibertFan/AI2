@@ -95,13 +95,16 @@ class EvolutionAlgorithm(object):
           
         #consequence = runGames( **command_list[1] )
         #print consequence[0][0].state.data.score 
-
+        #for i in range(len(argv_list)):
+        #    games, serial_num = MP( argv_list[i])
+        #    print serial_num, games[0].state.data.score
+        #raise Exception 
         print "c"*50
-        p = mp.ProcessPool( 4 )
+        p = mp.ProcessPool( 2 )
         scores_list = []
         results = []
         for argv in argv_list:
-            print "argv", argv
+            #print "argv", argv
             results.append( p.apipe( MP, argv ) ) 
         for r in results:
             c = r.get() 
