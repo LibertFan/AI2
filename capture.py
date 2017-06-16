@@ -1044,6 +1044,30 @@ def save_score(game):
     with open('score', 'w') as f:
         print >> f, game.state.data.score
 
+def EA(unity_num, generation_num, options):
+    import random
+    random.seed(10)
+    from pathos import multiprocessing as mp
+
+    global WEIGHT_LIST
+    WEIGHT_LIST = []
+
+    for each_generation in range(generation_num):
+        p = mp.ProcessPool(4)
+
+        ActionSeriesLists = []
+        results = []
+        for each_unity in range(unity_num):
+            results.append(p.apipe(runGames, **options))
+        for r in results:
+            ActionSeriesLists.append(r.get())
+        score_list = []
+        for v in ActionSeriesLists:
+            score_list.append(v[0].state.data.score)
+
+def newGeneration(score_list, ):
+
+
 
 if __name__ == '__main__':
 
@@ -1054,10 +1078,10 @@ if __name__ == '__main__':
     See the usage string for more details.
     > python capture.py --help
     """
-    import random, copy
-    from pathos import multiprocessing as mp
-    random.seed(10)
+
     options = readCommand(sys.argv[1:])  # Get game components based on input
+
+    '''
     options_list = [ options , copy.deepcopy(options), copy.deepcopy(options) ]
     p = mp.ProcessPool( 4 )
     t1 = time.time()
@@ -1070,6 +1094,7 @@ if __name__ == '__main__':
         ActionSeriesLists.append( r.get() )
     for v in ActionSeriesLists:
         print v
+    '''
     #print type(options), options
     #games = runGames(**options)
 
