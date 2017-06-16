@@ -35,6 +35,9 @@ def createTeam(firstIndex, secondIndex, isRed,
     any extra arguments, so you should make sure that the default
     behavior is what you want for the nightly contest.
     """
+    #print "="*20,"createTeam","="*20
+    #print Param_Weights_1, Param_Weights_2
+    #print "="*20,"createTeam","="*20
     if firstIndex < 2:
         first = 'Basicv1'
         PW1 = Param_Weights_1  
@@ -47,9 +50,9 @@ def createTeam(firstIndex, secondIndex, isRed,
     else:
         second = 'Basicv2'
         PW2 = Param_Weights_2 
-    print first
-    print second
-    return [eval(first)(firstIndex,PW1), eval(second)(secondIndex,PW2)]
+    #print first, "PW1", PW1
+    #print second, "PW2", PW2
+    return [eval(first)(firstIndex, Param_Weights=PW1), eval(second)(secondIndex, Param_Weights=PW2)]
 
 
 ##########
@@ -63,6 +66,7 @@ class ReflexCaptureAgent(CaptureAgent):
 
     def registerInitialState(self, gameState):
         self.start = gameState.getAgentPosition(self.index)
+        #print "Param_Weights:", self.Param_Weights
         #print "self.index", self.index
         CaptureAgent.registerInitialState(self, gameState)
 
@@ -269,9 +273,10 @@ class Basicv1(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,
-                'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
-                '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
+        return self.Param_Weights
+        #return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,
+        #        'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
+        #        '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
 
 
 class Basicv2(ReflexCaptureAgent):
@@ -349,8 +354,9 @@ class Basicv2(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
-        return {'eats-invader': 5, 'invaders-1-step-away': 1, 'teammateDist': 1.5, 'closest-food': -1,
-                'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
-                '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
+        return self.Param_Weights
+        #return {'eats-invader': 5, 'invaders-1-step-away': 1, 'teammateDist': 1.5, 'closest-food': -1,
+        #        'eats-capsules': 10.0, '#-of-dangerous-ghosts-1-step-away': -20, 'eats-ghost': 1.0,
+        #        '#-of-harmless-ghosts-1-step-away': 0.1, 'stopped': -5, 'eats-food': 1}
 
 

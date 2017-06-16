@@ -43,8 +43,8 @@ def createTeam(firstIndex, secondIndex, isRed,
         second = 'Caesar'
     else:
         second = 'Caesar1'
-    print first
-    print second
+    #print first
+    #print second
     return [eval(first)(firstIndex), eval(second)(secondIndex)]
 
 

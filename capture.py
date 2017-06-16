@@ -923,22 +923,24 @@ def readCommand( argv = None, dict_argv = None ):
     #print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
   
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
-    print "nokeyboard:",nokeyboard
-    print '\nRed team %s with %s:' % (options.red, redArgs)
-    print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
+    #print "nokeyboard:",nokeyboard
+    #print '\nRed team %s with %s:' % (options.red, redArgs)
+    #print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
     #try: 
-    redAgents = loadAgents(True, options.red, nokeyboard, redArgs, Param_Weights_1 = None, Param_Weights_2 = None)
+    #print "X"*50
+    #print Param_Weights_1, Param_Weights_2 
+    #print "X"*50
+    redAgents = loadAgents(True, options.red, nokeyboard, redArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2)
     #except:
     #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
          
     print '\nBlue team %s with %s:' % (options.blue, blueArgs)
     #try: 
-    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = None, Param_Weights_2 = None)
+    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_1)
     #except:
     #    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs )
 
     args['agents'] = sum([list(el) for el in zip(redAgents, blueAgents)], [])  # list of agents
-
     numKeyboardAgents = 0
     for index, val in enumerate([options.keys0, options.keys1, options.keys2, options.keys3]):
         if not val: continue
@@ -1009,8 +1011,8 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None
     args = dict()
     args.update(cmdLineArgs)  # Add command line args with priority
 
-    print "Loading Team:", factory
-    print "Arguments:", args
+    #print "Loading Team:", factory
+    #print "Arguments:", args
 
     # if textgraphics and factoryClassName.startswith('Keyboard'):
     #   raise Exception('Using the keyboard requires graphics (no text display, quiet or training games)')
@@ -1032,6 +1034,9 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None
     #print agent1.index, agent2.index, agent1.Param_Weights, agent2.Param_Weights
     #print "agents", agent_list
 
+    #print "X"*20,"loadAgent","X"*20
+    #print Param_Weights_1, Param_Weights_2 
+    #print "X"*50
     return createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2 )
 
 
@@ -1061,7 +1066,8 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
 
     if numTraining > 0:
         print 'Playing %d training games' % numTraining
-
+    
+    #print serial_num, "runGames begin!"
     for i in range(numGames):
         beQuiet = i < numTraining
         layout = layouts[i]
@@ -1074,8 +1080,12 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
             gameDisplay = display
             rules.quiet = False
         g = rules.newGame(layout, agents, gameDisplay, length, muteAgents, catchExceptions )
+        #print serial_num, "g has been set!"
         g.run()
+        #print serial_num, "g run over"
         if not beQuiet: games.append(g)
+
+        #print serial_num, " newGame finish "
 
         g.record = None
         if record:
@@ -1085,22 +1095,24 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
             components = {'layout': layout, 'agents': [game.Agent() for a in agents], 'actions': g.moveHistory,
                           'length': length, 'redTeamName': redTeamName, 'blueTeamName': blueTeamName}
             # f.close()
-            print "recorded"
+            #print "recorded"
             g.record = cPickle.dumps(components)
             with open('replay-%d' % i, 'wb') as f:
                 f.write(g.record)
+
+        #print serial_num, "Real Finish!"           
 
     if numGames > 1:
         scores = [game.state.data.score for game in games]
         redWinRate = [s > 0 for s in scores].count(True) / float(len(scores))
         blueWinRate = [s < 0 for s in scores].count(True) / float(len(scores))
-        print 'Average Score:', sum(scores) / float(len(scores))
-        print 'Scores:       ', ', '.join([str(score) for score in scores])
-        print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
-        print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
-        print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
+        #print 'Average Score:', sum(scores) / float(len(scores))
+        #print 'Scores:       ', ', '.join([str(score) for score in scores])
+        #print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
+        #print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
+        #print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
 
-    return games, serial_num
+    return scores, redWinRate, blueWinRate, serial_num
 
 def save_score(game):
     with open('score', 'w') as f:
