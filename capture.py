@@ -99,7 +99,7 @@ class GameState:
         """
         return AgentRules.getLegalActions(self, agentIndex)
 
-    def generateSuccessor(self, agentIndex, action):
+    def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False):
         """
         Returns the successor state (a GameState object) after the specified agent takes the action.
         """
@@ -108,14 +108,17 @@ class GameState:
 
         # Find appropriate rules for the agent
         AgentRules.applyAction(state, action, agentIndex)
-        AgentRules.checkDeath(state, agentIndex)
+        DeadAgentList = AgentRules.checkDeath(state, agentIndex)
         AgentRules.decrementTimer(state.data.agentStates[agentIndex])
 
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
         state.data.timeleft = self.data.timeleft - 1
-        return state
+        if not ReturnDeadAgentList:
+            return state
+        else:
+            return state, DeadAgentList
 
     def getAgentState(self, index):
         return self.data.agentStates[index]
@@ -481,7 +484,6 @@ class AgentRules:
             print "x"*50 
             agentState = state.data.agentStates[ agentIndex ] 
             print agentIndex, action, legal, agentState.configuration.getPosition()
-            1 / 0 
             #raise Exception("Illegal action " + str(action))
 
         # Update Configuration
@@ -683,6 +685,7 @@ class AgentRules:
     dumpFoodFromDeath = staticmethod(dumpFoodFromDeath)
 
     def checkDeath(state, agentIndex):
+        deadAgentList = []
         agentState = state.data.agentStates[agentIndex]
         if state.isOnRedTeam(agentIndex):
             otherTeam = state.getBlueTeamIndices()
@@ -706,6 +709,7 @@ class AgentRules:
                         agentState.isPacman = False
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
+                        deadAgentList.append( agentIndex )
                     else:
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
@@ -714,6 +718,7 @@ class AgentRules:
                         otherAgentState.isPacman = False
                         otherAgentState.configuration = otherAgentState.start
                         otherAgentState.scaredTimer = 0
+                        deadAgentList.append( index )
         else:  # Agent is a ghost
             for index in otherTeam:
                 otherAgentState = state.data.agentStates[index]
@@ -732,6 +737,7 @@ class AgentRules:
                         otherAgentState.isPacman = False
                         otherAgentState.configuration = otherAgentState.start
                         otherAgentState.scaredTimer = 0
+                        deadAgentList.append( index )
                     else:
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
@@ -740,6 +746,9 @@ class AgentRules:
                         agentState.isPacman = False
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
+                        deadAgentList.append( agentIndex )
+                        
+        return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
 
@@ -1126,10 +1135,10 @@ def MP1(argv):
     option = readCommand( argv )
     return runGames(**option)  
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
 
     
-    #import random, copy
+    import random, copy, sys
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1144,7 +1153,8 @@ def MP1(argv):
     #sa = sys.argv[1:]
     #print type(sa), sa 
     #print "&"*50
-    #options = readCommand(sys.argv[1:])  # Get game components based on input
+    options = readCommand(sys.argv[1:])  # Get game components based on input
+    print runGames( **options )
     #from EvolutionAlgorithm import Options
     #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
     #commands = readCommand( options ) 

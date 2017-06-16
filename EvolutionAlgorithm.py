@@ -42,7 +42,7 @@ class EvolutionAlgorithm(object):
         self.BasicAgent = BasicAgent
         self.EnemiesAgentList = EnemiesAgentList
         if self.EnemiesAgentList is None: 
-            self.EnemiesAgentList = [ "enemy3" , "myTeam_caesar", "enemy1", "enemy2", ]          
+            self.EnemiesAgentList = [ "myTeam_caesar", ]          
          
         self.NumUnit = NumUnit
         self.alpha = alpha
@@ -152,11 +152,17 @@ class EvolutionAlgorithm(object):
             agent_weights_dict = self.mutation( selected_sorted_weights_list )   
             with open("score.txt","a") as f:
                  f.write( str(agent_score_pair_list) )
-                 f.write( "\n" )
+                 f.write( "\n\n\n" )
             f.close()
-   
 
         return agent_weights_dict, np.array( store_scores )
+
+    def RoundRobin( self ):
+        return 0            
+
+    def set_weights( self ):
+        return 0 
+
 
 def main():
     ea = EvolutionAlgorithm( BasicAgent = "myTeamBasic" )
