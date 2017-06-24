@@ -20,7 +20,7 @@ from decimal import Decimal
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
-               first='OffensiveReflexAgent', second='DefensiveReflexAgent', Param_Weights_1 = None, Param_Weights_2 = None ):
+               first='OffensiveReflexAgent', second='DefensiveReflexAgent', Param_Weights_1 = None, Param_Weights_2 = None, SerialNum = None ):
     """
     This function should return a list of two agents that will form the
     team, initialized using firstIndex and secondIndex as their agent
@@ -45,8 +45,7 @@ def createTeam(firstIndex, secondIndex, isRed,
         second = 'Caesar1'
     #print first
     #print second
-    return [eval(first)(firstIndex), eval(second)(secondIndex)]
-
+    return [eval(first)(firstIndex,SerialNum=SerialNum), eval(second)(secondIndex,SerialNum=SerialNum)]
 
 ##########
 # Agents #
@@ -58,11 +57,30 @@ class ReflexCaptureAgent(CaptureAgent):
     """
 
     def registerInitialState(self, gameState):
+
         self.start = gameState.getAgentPosition(self.index)
         #print "self.index", self.index
         CaptureAgent.registerInitialState(self, gameState)
+        self.Count = 0
+        self.RandomStepUpperBound = random.randint(22,370)
 
     def chooseAction(self, gameState):
+        #print gameState.data.layout
+        self.Count += 1
+        #print gameState.data
+        """
+        if self.Count > 21 and self.Count < self.RandomStepUpperBound:
+            actions = gameState.getLegalActions( self.index )
+            return random.sample( actions, 1)[0]
+
+        if self.Count == self.RandomStepUpperBound:
+            with open("train/"+str(self.SerialNum)+".txt","a" ) as f:
+                f.write(str( self.Count )+"\n\n")
+                f.write(   ) ## write the layout in!
+                f.write("\n\n")
+            f.close()
+        """ 
+        #print "Count", self.Count
         """
         Picks among the actions with the highest Q(s,a).
         """

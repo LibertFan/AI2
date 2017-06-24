@@ -932,9 +932,9 @@ def readCommand( argv = None, dict_argv = None ):
     #print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
   
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
-    print "nokeyboard:",nokeyboard
-    print '\nRed team %s with %s:' % (options.red, redArgs)
-    print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
+    #print "nokeyboard:",nokeyboard
+    #print '\nRed team %s with %s:' % (options.red, redArgs)
+    #print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
     #try: 
     #print "X"*50
     #print Param_Weights_1, Param_Weights_2 
@@ -985,7 +985,7 @@ def readCommand( argv = None, dict_argv = None ):
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
     if argv is not None:
-        args['serial_num'] = None
+        args['serial_num'] = "Origin1"
     else:
         args['serial_num'] = options.serial_num 
     #except:
@@ -1020,8 +1020,8 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None
     args = dict()
     args.update(cmdLineArgs)  # Add command line args with priority
 
-    print "Loading Team:", factory
-    print "Arguments:", args
+    #print "Loading Team:", factory
+    #print "Arguments:", args
 
     # if textgraphics and factoryClassName.startswith('Keyboard'):
     #   raise Exception('Using the keyboard requires graphics (no text display, quiet or training games)')
@@ -1121,6 +1121,13 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
         print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
 
+        with open("train/"+str(serial_num)+".txt","a") as f:
+            f.write("\n\n")
+            for score in scores:
+                f.write(str(score)+",")
+            f.write("\n\n")
+        f.close()
+
     return scores, redWinRate, blueWinRate, serial_num
 
 def save_score(game):
@@ -1187,15 +1194,5 @@ if __name__ == '__main__':
     #save_score(games[0])
     #import cProfile
     #cProfile.run('runGames( **options )', 'profile')
-
-
-
-
-
-
-
-
-
-
 
 
