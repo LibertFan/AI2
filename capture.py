@@ -99,7 +99,7 @@ class GameState:
         """
         return AgentRules.getLegalActions(self, agentIndex)
 
-    def generateSuccessor(self, agentIndex, action):
+    def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False ):
         """
         Returns the successor state (a GameState object) after the specified agent takes the action.
         """
@@ -108,14 +108,17 @@ class GameState:
 
         # Find appropriate rules for the agent
         AgentRules.applyAction(state, action, agentIndex)
-        AgentRules.checkDeath(state, agentIndex)
+        DeadAgentList = AgentRules.checkDeath(state, agentIndex)
         AgentRules.decrementTimer(state.data.agentStates[agentIndex])
 
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
         state.data.timeleft = self.data.timeleft - 1
-        return state
+        if not ReturnDeadAgentList:
+            return state
+        else:
+            return state, DeadAgentList
 
     def getAgentState(self, index):
         return self.data.agentStates[index]
@@ -373,7 +376,7 @@ class CaptureRules:
         initState = GameState()
         initState.initialize(layout, len(agents))
         starter = random.randint(0, 1)
-        print('%s team starts' % ['Red', 'Blue'][starter])
+        #print('%s team starts' % ['Red', 'Blue'][starter])
         game = Game(agents, display, self, startingIndex=starter, muteAgents=muteAgents,
                     catchExceptions=catchExceptions)
         game.state = initState
@@ -683,6 +686,7 @@ class AgentRules:
     dumpFoodFromDeath = staticmethod(dumpFoodFromDeath)
 
     def checkDeath(state, agentIndex):
+        deadAgentList = []
         agentState = state.data.agentStates[agentIndex]
         if state.isOnRedTeam(agentIndex):
             otherTeam = state.getBlueTeamIndices()
@@ -706,6 +710,7 @@ class AgentRules:
                         agentState.isPacman = False
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
+                        deadAgentList.append( agentIndex )
                     else:
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
@@ -714,6 +719,7 @@ class AgentRules:
                         otherAgentState.isPacman = False
                         otherAgentState.configuration = otherAgentState.start
                         otherAgentState.scaredTimer = 0
+                        deadAgentList.append( index )
         else:  # Agent is a ghost
             for index in otherTeam:
                 otherAgentState = state.data.agentStates[index]
@@ -732,6 +738,7 @@ class AgentRules:
                         otherAgentState.isPacman = False
                         otherAgentState.configuration = otherAgentState.start
                         otherAgentState.scaredTimer = 0
+                        deadAgentList.append( index )
                     else:
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
@@ -740,6 +747,8 @@ class AgentRules:
                         agentState.isPacman = False
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
+                        deadAgentList.append( agentIndex )
+        return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
 
@@ -934,7 +943,7 @@ def readCommand( argv = None, dict_argv = None ):
     #except:
     #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
          
-    print '\nBlue team %s with %s:' % (options.blue, blueArgs)
+    #print '\nBlue team %s with %s:' % (options.blue, blueArgs)
     #try: 
     blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_1)
     #except:
@@ -1126,10 +1135,10 @@ def MP1(argv):
     option = readCommand( argv )
     return runGames(**option)  
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
 
     
-    #import random, copy
+    import random, copy
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1144,7 +1153,7 @@ def MP1(argv):
     #sa = sys.argv[1:]
     #print type(sa), sa 
     #print "&"*50
-    #options = readCommand(sys.argv[1:])  # Get game components based on input
+    options = readCommand(sys.argv[1:])  # Get game components based on input
     #from EvolutionAlgorithm import Options
     #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
     #commands = readCommand( options ) 
@@ -1166,8 +1175,8 @@ def MP1(argv):
     #    print v[0][0].state.data.score
     
     #print type(options), options 
-    #games, serial_num = runGames(**commands)
-     
+    games, redWinRate, blueWinRate, serial_num = runGames(**options)
+    print games, redWinRate, blueWinRate, serial_num     
     #print len(games),serial_num
     #print "="*50
     #for game in games:
