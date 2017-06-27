@@ -99,7 +99,11 @@ class GameState:
         """
         return AgentRules.getLegalActions(self, agentIndex)
 
+<<<<<<< HEAD
     def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False ):
+=======
+    def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False):
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         """
         Returns the successor state (a GameState object) after the specified agent takes the action.
         """
@@ -484,7 +488,6 @@ class AgentRules:
             print "x"*50 
             agentState = state.data.agentStates[ agentIndex ] 
             print agentIndex, action, legal, agentState.configuration.getPosition()
-            1 / 0 
             #raise Exception("Illegal action " + str(action))
 
         # Update Configuration
@@ -748,6 +751,10 @@ class AgentRules:
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
+<<<<<<< HEAD
+=======
+                        
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
@@ -985,7 +992,7 @@ def readCommand( argv = None, dict_argv = None ):
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
     if argv is not None:
-        args['serial_num'] = None
+        args['serial_num'] = "Origin1"
     else:
         args['serial_num'] = options.serial_num 
     #except:
@@ -1115,11 +1122,18 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         scores = [game.state.data.score for game in games]
         redWinRate = [s > 0 for s in scores].count(True) / float(len(scores))
         blueWinRate = [s < 0 for s in scores].count(True) / float(len(scores))
-        #print 'Average Score:', sum(scores) / float(len(scores))
-        #print 'Scores:       ', ', '.join([str(score) for score in scores])
-        #print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
-        #print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
-        #print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
+        print 'Average Score:', sum(scores) / float(len(scores))
+        print 'Scores:       ', ', '.join([str(score) for score in scores])
+        print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
+        print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
+        print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
+
+        with open("train/"+str(serial_num)+".txt","a") as f:
+            f.write("\n\n")
+            for score in scores:
+                f.write(str(score)+",")
+            f.write("\n\n")
+        f.close()
 
     return scores, redWinRate, blueWinRate, serial_num
 
@@ -1138,7 +1152,11 @@ def MP1(argv):
 if __name__ == '__main__':
 
     
+<<<<<<< HEAD
     import random, copy
+=======
+    import random, copy, sys
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1154,6 +1172,10 @@ if __name__ == '__main__':
     #print type(sa), sa 
     #print "&"*50
     options = readCommand(sys.argv[1:])  # Get game components based on input
+<<<<<<< HEAD
+=======
+    print runGames( **options )
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from EvolutionAlgorithm import Options
     #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
     #commands = readCommand( options ) 
@@ -1186,15 +1208,5 @@ if __name__ == '__main__':
     #save_score(games[0])
     #import cProfile
     #cProfile.run('runGames( **options )', 'profile')
-
-
-
-
-
-
-
-
-
-
 
 

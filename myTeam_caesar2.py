@@ -21,7 +21,11 @@ from decimal import Decimal
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
+<<<<<<< HEAD
                first='OffensiveReflexAgent', second='DefensiveReflexAgent',Param_Weights_1=None,Param_Weights_2=None):
+=======
+               first='OffensiveReflexAgent', second='DefensiveReflexAgent', Param_Weights_1 = None, Param_Weights_2 = None ):
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     """
     This function should return a list of two agents that will form the
     team, initialized using firstIndex and secondIndex as their agent
@@ -37,6 +41,7 @@ def createTeam(firstIndex, secondIndex, isRed,
     behavior is what you want for the nightly contest.
     """
     if firstIndex < 2:
+<<<<<<< HEAD
         first = 'Caesar'
     elif firstIndex < 4:
         first = 'Caesar1'
@@ -44,6 +49,15 @@ def createTeam(firstIndex, secondIndex, isRed,
         second = 'Caesar'
     else:
         second = 'Caesar1'
+=======
+        first = 'BlueCaesarv1'
+    elif firstIndex < 4:
+        first = 'BlueCaesarv2'
+    if secondIndex < 2:
+        second = 'BlueCaesarv1'
+    else:
+        second = 'BlueCaesarv2'
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     print first
     print second
     return [eval(first)(firstIndex), eval(second)(secondIndex)]
@@ -266,10 +280,18 @@ class Caesar(ReflexCaptureAgent):
         return features
 
     def getWeights(self, gameState, action):
+<<<<<<< HEAD
         return {'classmmateDist': 11.033799092852993, 'closest-food': -1.0697697889119142, 'eats-capsules': 5.666014789146425,
                 '#-of-dangerous-ghosts-1-step-away': -43.178169903268355, 'eats-ghost': 1.6524954758709685,
                 'invaders-1-step-away': 7.9540454404265395, '#-of-harmless-ghosts-1-step-away': 6.238100881617446, 
                 'stopped': -5.92349986729229, 'eats-invader': 7.601288768490008, 'eats-food': 9.743053913025307} 
+=======
+        return {'teammateDist': 11.033799092852993, 'closest-food': -1.0697697889119142, 'eats-capsules': 5.666014789146425,
+                '#-of-dangerous-ghosts-1-step-away': -43.178169903268355, 'eats-ghost': 1.6524954758709685,
+                'invaders-1-step-away': 7.9540454404265395, '#-of-harmless-ghosts-1-step-away': 6.238100881617446, 
+                'stopped': -5.92349986729229, 'eats-invader': 7.601288768490008, 'eats-food': 9.743053913025307}
+
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
 
 class Caesar1(ReflexCaptureAgent):
     def getFeatures(self, state, action):
@@ -351,6 +373,7 @@ class Caesar1(ReflexCaptureAgent):
                 'invaders-1-step-away': 9.431932351092028, '#-of-harmless-ghosts-1-step-away': 5.33351837281609, 
                 'stopped': -22.037745489774426, 'eats-invader': 7.47108152520365, 'eats-food': 0.011298359492839749}
 
+<<<<<<< HEAD
 
 
 class Caesar2(ReflexCaptureAgent):
@@ -533,6 +556,22 @@ class Caesar2(ReflexCaptureAgent):
 
     def getWeights(self, gameState, action):
         return self.setWeights
+=======
+class BlueCaesarv1( Caesar ):
+    def getWeights( self, gameState, action ):
+        return {'teammateDist': -3.2718961148610317, 'closest-food': -6.682719690232976, 'eats-capsules': 5.948265687210235,
+                '#-of-dangerous-ghosts-1-step-away': 2.618036571961947, 'eats-ghost': 1.0699085691129198,
+                'invaders-1-step-away': 5.164308691794058, '#-of-harmless-ghosts-1-step-away': -1.3686346909838565, 
+                'stopped': -9.98435952139975, 'eats-invader': 11.267029962006054, 'eats-food': 4.244502452526694}
+
+class BlueCaesarv2( Caesar1 ):
+    def getWeights( self, gameState, action ):
+        return {'teammateDist': -3.0882321969932027, 'closest-food': -4.340443069025117, 'eats-capsules': -5.825230438267441,
+                '#-of-dangerous-ghosts-1-step-away': -29.231854461635553, 'eats-ghost': 2.4372952351255788,
+                'invaders-1-step-away': -4.06243013284915, '#-of-harmless-ghosts-1-step-away': 3.3620676575071853, 
+                'stopped': 1.7352982980196041, 'eats-invader': 2.179780352767259, 'eats-food': 1.7703149062833277} 
+
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
 
 
 

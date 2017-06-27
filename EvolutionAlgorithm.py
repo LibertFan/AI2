@@ -255,6 +255,13 @@ class EvolutionAlgorithm(object):
 
         return agent_weights_dict, np.array( store_scores )
 
+    def RoundRobin( self ):
+        return 0            
+
+    def set_weights( self ):
+        return 0 
+
+
 def main():
     ea = EvolutionAlgorithm( BasicAgent = "myTeamBasic" )
     agent_weights_dict, store_scores = ea.evolution() 
