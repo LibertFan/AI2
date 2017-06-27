@@ -240,7 +240,7 @@ class QJT( CaptureAgent ):
         ### eat-foods may less than zero which means that it was wipe out by enemies
         features["eat-new-food"] = int( NewAgentState.numCarrying - OldAgentState.numCarrying > 0 ) 
         features["return-new-food"] = int( NewAgentState.numReturn - OldAgentState.numReturn > 0 )
-		features["return-new-food-number"] = NewAgentState.numReturn - OldAgentState.numReturn
+	features["return-new-food-number"] = NewAgentState.numReturn - OldAgentState.numReturn
         features["eat-capsules"] = int( NewAgentState.numCapsules - OldAgentState.numCapsules < 0 )
 
         ### CheckDeath
@@ -248,15 +248,21 @@ class QJT( CaptureAgent ):
         index = 0
         for agentIndex in self.allies:
             if agentIndex in deadAgents:
-                features[ "Ally-Die" + str(index) ] = 1
-                features[ "Ally-Die-food" + str(index) ] = gameState.getAgentState( agentIndex ).numCarrying
+                if gameState.getAgentState( agentIndex ).isPacman:
+                    features[ "Ally-Pacman-Die" + str(index) ] = 1
+                    features[ "Ally-Die-food" + str(index) ] = gameState.getAgentState( agentIndex ).numCarrying
+                else:
+                    features["Ally-Ghost-Die" + str(index)] = 1
                 index += 1    
         
         index = 0
         for agentIndex in self.enemies:
             if agentIndex in deadAgents:
-                features[ "Enemy-Die" + str(index) ] = 1
-                features[ "Enemy-Die-food" + str(index) ] = gameState.getAgentState( agentIndex ).numCarrying
+                if gameState.getAgentState( agentIndex ).isPacman:
+                    features[ "Enemy-Pacman-Die" + str(index) ] = 1
+                    features[ "Enemy-Pacman-Die-food" + str(index) ] = gameState.getAgentState( agentIndex ).numCarrying
+                else:
+                    features["Enemy-Ghost-Die" + str(index) ] = 1
                 index += 1    
 
         return features
@@ -343,7 +349,11 @@ class QJT( CaptureAgent ):
             # Unfinished
             minDistanceToEnemyField = min( [ self.getMazeDistance( gameState.getAgentState( agentIndex ).getPosition(), Pos ) for Pos in self.EnemyBorder ] )
             features["ScaringGhost-EnenmyField-minDistance" + str( index ) ] = minDistanceToEnemyField
-
+            """  
+            InterceptList = self.isIntercept( gameState, InvaderIndexList, normalAgentIndexList, ObjsType = 0 )
+            for index, ( InvaderIndex, interceptDistance, isIntercept) in enumerate(InterceptList):
+		features["ScaringGhost-Invader-EnemyField-isIntercept"]:				
+            """
         ### normal one
         for index, agentIndex in enumerate(normalAgentIndexList):
             DistanceToInvaderList = [ self.getMazeDistance( gameState.getAgentState( agentIdnex ).getPosition(), gameState.getAgentState( invaderIndex ).getPosition() )
@@ -366,37 +376,40 @@ class QJT( CaptureAgent ):
             
         return features
 
-    def getWeights(self, gameState, actions):
+    def getWeights( self ):
         """
         Normally, weights do not depend on the gamestate.  They can be either
         a counter or a dictionary.
         """
+        if self.ParamWeights is not None:
+            Weights = self.ParamWeights
+
         return {"stopped":-5, 
-				"reverse":-5,
-       			"eat-new-food":2,
-      			"return-new-food":5,
-				"return-new-food-number":2,
-        		"eat-capsules":20, 
+		"reverse":-5,
+       		"eat-new-food":2,
+      		"return-new-food":5,
+		"return-new-food-number":2,
+        	"eat-capsules":20, 
                	"Ally-Pacman-Die":-10,
-                "Ally-Die-food":-2,
-				"Ally-Ghost-Die":-5
+                "Ally-Pacman-Die-food":-2,
+		"Ally-Ghost-Die":-5,
               	"Enemy-Pacman-Die":10,
-               	"Enemy-Die-food":2,
-				"Enemy-Ghost-Die":5,	
-				"Pacman-Food-minDistance1":-1,
-				"Pacman-Food-minDistance2":-1,
+               	"Enemy-Pacman-Die-food":2,
+		"Enemy-Ghost-Die":5,	
+		"Pacman-Food-minDistance1":-1,
+		"Pacman-Food-minDistance2":-1,
                 "Pacman-Capsule-minDistance1":-2,
-				"Pacman-Capsule-minDistance2":-2,
-         		"Pacman-UnScaredEnemy-minDistance1":2,
+		"Pacman-Capsule-minDistance2":-2,
+         	"Pacman-UnScaredEnemy-minDistance1":2,
                 "Pacman-UnScaredEnemy-minDistance-numCarrying1":2, 
                 "Pacman-UnScaredEnemy-flee-intercept-minDistance1":-2, 
                 "Pacman-UnScaredEnemy-flee-isIntercept1":10,
                 #"Pacman-UnScaredEnemy-flee-numCarrying1":,
                 "Pacman-UnScaredEnemy-capsule-intercept-minDistance1":-2,
                 "Pacman-UnScaredEnemy-capsule-isIntercept1":5,
-               	"Pacman-ScaredEnemy-flee-isIntercept1":,
+               	"Pacman-ScaredEnemy-flee-isIntercept1":Weights["Pacman-ScaredEnemy-flee-isIntercept"],
               	#"Pacman-ScaredEnemy-flee-numCarrying1":,
-         		"Pacman-UnScaredEnemy-minDistance2":,
+         	"Pacman-UnScaredEnemy-minDistance2":,
                 "Pacman-UnScaredEnemy-minDistance-numCarrying2" 
                 "Pacman-UnScaredEnemy-flee-intercept-minDistance2" 
                 "Pacman-UnScaredEnemy-flee-isIntercept2"
@@ -405,29 +418,29 @@ class QJT( CaptureAgent ):
                 "Pacman-UnScaredEnemy-capsule-isIntercept2"
                	"Pacman-ScaredEnemy-flee-isIntercept2"
               	"Pacman-ScaredEnemy-flee-numCarrying2"
-          		"ScaringGhost-Invader-minDistance1":1,
+          	"ScaringGhost-Invader-minDistance1":1,
             	#"ScaringGhost-Invader-minDistance-numCarrying1":, 
             	"ScaringGhost-EnenmyField-minDistance1":-2,
-				###"ScaringGhost-Invader-EnemyField-isIntercept":-5,				
+		###"ScaringGhost-Invader-EnemyField-isIntercept":-5,				
 
             	"NormalGhost-Invader-minDistance1":-1,
-				#"NormalGhost-Invader-minDistance-numCarrying1":-0.1,
+		#"NormalGhost-Invader-minDistance-numCarrying1":-0.1,
                 "NormalGhost-Invader-flee-intercept-distance1":2,
                 "NormalGhost-Invader-flee-isIntercept1":-10,
                 #"NormalGhost-Invader-flee-intercept-numCarrying1":,
                 "NormalGhost-Invader-capsule-intercept-distance1":2,
               	"NormalGhost-Invader-capsule-isIntercept1":-20,
-          		"ScaringGhost-Invader-minDistance2"
+          	"ScaringGhost-Invader-minDistance2"
             	"ScaringGhost-Invader-minDistance-numCarrying2" 
             	"ScaringGhost-EnenmyField-minDistance2"
             	"NormalGhost-Invader-minDistance2"
-				"NormalGhost-Invader-minDistance-numCarrying2"
+		"NormalGhost-Invader-minDistance-numCarrying2"
                 "NormalGhost-Invader-flee-intercept-distance2"
                 "NormalGhost-Invader-flee-isIntercept2"
                 "NormalGhost-Invader-flee-intercept-numCarrying2" 
                 "NormalGhost-Invader-capsule-intercept-distance2"
               	"NormalGhost-Invader-capsule-isIntercept2"
 
- }
+                }
 
 
