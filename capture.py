@@ -99,7 +99,11 @@ class GameState:
         """
         return AgentRules.getLegalActions(self, agentIndex)
 
+<<<<<<< HEAD
+    def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False ):
+=======
     def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False):
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         """
         Returns the successor state (a GameState object) after the specified agent takes the action.
         """
@@ -376,7 +380,7 @@ class CaptureRules:
         initState = GameState()
         initState.initialize(layout, len(agents))
         starter = random.randint(0, 1)
-        print('%s team starts' % ['Red', 'Blue'][starter])
+        #print('%s team starts' % ['Red', 'Blue'][starter])
         game = Game(agents, display, self, startingIndex=starter, muteAgents=muteAgents,
                     catchExceptions=catchExceptions)
         game.state = initState
@@ -747,7 +751,10 @@ class AgentRules:
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
+<<<<<<< HEAD
+=======
                         
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
@@ -943,7 +950,7 @@ def readCommand( argv = None, dict_argv = None ):
     #except:
     #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
          
-    print '\nBlue team %s with %s:' % (options.blue, blueArgs)
+    #print '\nBlue team %s with %s:' % (options.blue, blueArgs)
     #try: 
     blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_1)
     #except:
@@ -1145,7 +1152,11 @@ def MP1(argv):
 if __name__ == '__main__':
 
     
+<<<<<<< HEAD
+    import random, copy
+=======
     import random, copy, sys
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1161,7 +1172,10 @@ if __name__ == '__main__':
     #print type(sa), sa 
     #print "&"*50
     options = readCommand(sys.argv[1:])  # Get game components based on input
+<<<<<<< HEAD
+=======
     print runGames( **options )
+>>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from EvolutionAlgorithm import Options
     #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
     #commands = readCommand( options ) 
@@ -1183,8 +1197,8 @@ if __name__ == '__main__':
     #    print v[0][0].state.data.score
     
     #print type(options), options 
-    #games, serial_num = runGames(**commands)
-     
+    games, redWinRate, blueWinRate, serial_num = runGames(**options)
+    print games, redWinRate, blueWinRate, serial_num     
     #print len(games),serial_num
     #print "="*50
     #for game in games:
