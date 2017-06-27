@@ -55,30 +55,63 @@ class EvolutionAlgorithm(object):
         #initial_command_list = []
         #agent_weights_dict = dict()
         for i in range( self.NumUnit ):
-            initial_weights_1 = dict()
-            initial_weights_1['eats-invader'] = round(random.random()*10,2)
-            initial_weights_1['invaders-1-step-away'] = round(random.random()*5,2)
-            initial_weights_1['teammateDist'] = round(random.random()*5,2)
-            initial_weights_1['closest-food'] = round(-random.random()*5,2)
-            initial_weights_1['eats-capsules'] = round(random.random()*20,2)
-            initial_weights_1['#-of-dangerous-ghosts-1-step-away'] = round(-random.random()*40,2)
-            initial_weights_1['eats-ghost'] = round(random.random()*3,2)
-            initial_weights_1['#-of-harmless-ghosts-1-step-away'] = round(random.random(),2)
-            initial_weights_1['stopped'] = round(-random.random()*10,2)
-            initial_weights_1['eats-food'] = round(random.random()*3,2)
-            initial_weights_2 = dict()
-            initial_weights_2['eats-invader'] = round(random.random()*10,2)
-            initial_weights_2['invaders-1-step-away'] = round(random.random()*5,2)
-            initial_weights_2['teammateDist'] = round(random.random()*5,2)
-            initial_weights_2['closest-food'] = round(-random.random()*5,2)
-            initial_weights_2['eats-capsules'] = round(random.random()*20,2)
-            initial_weights_2['#-of-dangerous-ghosts-1-step-away'] = round(-random.random()*40,2)
-            initial_weights_2['eats-ghost'] = round(random.random()*3,2)
-            initial_weights_2['#-of-harmless-ghosts-1-step-away'] = round(random.random(),2)
-            initial_weights_2['stopped'] = round(-random.random()*10,2)
-            initial_weights_2['eats-food'] = round(random.random()*3,2)
-            agent_weights = ( initial_weights_1, initial_weights_2 )
-            agent_weights_and_serial_info_dict[i] = ( agent_weights,( i, 0, 0, 0) )         
+            initial_weights = dict()
+            initial_weights["stopped"] = round( random.random()*2, 2 ) * -5, 
+            initial_weights["reverse"] = round( random.random()*2, 2 ) * -5,
+       	    initial_weights["eat-new-food"] = round( random.random()*2, 2 ) * 2,
+      	    initial_weights["return-new-food"] = round( random.random()*2, 2) * 5,
+	    initial_weights["return-new-food-number"] = round( random.random()*2, 2 ) * 2,
+            initial_weights["eat-capsules"] = round( random.random()*2, 2 ) * 20,
+            initial_weights["Ally-Pacman-Die"] = round( random.random()*2, 2 ) * -10,
+            initial_weights["Ally-Pacman-Die-food"] = round( random.random()*2, 2 ) * -2,
+	    initial_weights["Ally-Ghost-Die"] = round( random.random()*2, 2 ) * -5,
+            initial_weights["Enemy-Pacman-Die"] = round( random.random()*2, 2 ) * 10,
+            initial_weights["Enemy-Pacman-Die-food"] = round( random.random()*2, 2 ) * 2,
+	    initial_weights["Enemy-Ghost-Die"] = round( random.random()*2, 2 ) * 5,	
+	    initial_weights["Pacman-Food-minDistance1"] = round( random.random()*2, 2 ) * -1,
+	    initial_weights["Pacman-Food-minDistance2"] = round( random.random()*2, 2 ) * -1,
+            initial_weights["Pacman-Capsule-minDistance1"] = round( random.random()*2, 2 ) * -2,
+	    initial_weights["Pacman-Capsule-minDistance2"] = round( random.random()*2, 2 ) * -2,
+            initial_weights["Pacman-UnScaredEnemy-minDistance1"] = round( random.random()*2, 2 ) * 2,
+            initial_weights["Pacman-UnScaredEnemy-minDistance-numCarrying1"] = round( random.random()*2, 2 ) * 2, 
+            initial_weights["Pacman-UnScaredEnemy-flee-intercept-minDistance1"] = round( random.random()*2, 2 ) * -2, 
+            initial_weights["Pacman-UnScaredEnemy-flee-isIntercept1"] = round( random.random()*2, 2 ) * 10,
+            #"Pacman-UnScaredEnemy-flee-numCarrying1":,
+            initial_weights["Pacman-UnScaredEnemy-capsule-intercept-minDistance1"] = round( random.random()*2, 2 ) * -2,
+            initial_weights["Pacman-UnScaredEnemy-capsule-isIntercept1"] = round( random.random()*2, 2 ) * 5,
+            initial_weights["Pacman-ScaredEnemy-flee-isIntercept1"] = round( random.random()*2, 2 ) *
+            #"Pacman-ScaredEnemy-flee-numCarrying1":,
+            initial_weights["Pacman-UnScaredEnemy-minDistance2"] ,
+                "Pacman-UnScaredEnemy-minDistance-numCarrying2" 
+                "Pacman-UnScaredEnemy-flee-intercept-minDistance2" 
+                "Pacman-UnScaredEnemy-flee-isIntercept2"
+                "Pacman-UnScaredEnemy-flee-numCarrying2"
+                "Pacman-UnScaredEnemy-capsule-intercept-minDistance2"
+                "Pacman-UnScaredEnemy-capsule-isIntercept2"
+               	"Pacman-ScaredEnemy-flee-isIntercept2"
+              	"Pacman-ScaredEnemy-flee-numCarrying2"
+            initial_weights["ScaringGhost-Invader-minDistance1"] = round( random.random()*2, 2 ) * 1,
+            	#"ScaringGhost-Invader-minDistance-numCarrying1":, 
+            initial_weights["ScaringGhost-EnenmyField-minDistance1"] = round( random.random()*2, 2) * -2,
+		###"ScaringGhost-Invader-EnemyField-isIntercept":-5,				
+
+            initial_weights["NormalGhost-Invader-minDistance1"] = round( random.random()*2,2) * -1,
+		#"NormalGhost-Invader-minDistance-numCarrying1":-0.1,
+            initial_weights["NormalGhost-Invader-flee-intercept-distance1": round( random.random()*2, 2) * 2,
+            initial_weights["NormalGhost-Invader-flee-isIntercept1"] = round( random.random()*2, 2) * -10
+                #"NormalGhost-Invader-flee-intercept-numCarrying1":,
+            initial_weights["NormalGhost-Invader-capsule-intercept-distance1"] = round( random.random() *2, 2) * 2,
+            initial_weights["NormalGhost-Invader-capsule-isIntercept1"] = round( random.random() *2, 2) * -20
+          	"ScaringGhost-Invader-minDistance2"
+            	"ScaringGhost-Invader-minDistance-numCarrying2" 
+            	"ScaringGhost-EnenmyField-minDistance2"
+            	"NormalGhost-Invader-minDistance2"
+		"NormalGhost-Invader-minDistance-numCarrying2"
+                "NormalGhost-Invader-flee-intercept-distance2"
+                "NormalGhost-Invader-flee-isIntercept2"
+                "NormalGhost-Invader-flee-intercept-numCarrying2" 
+                "NormalGhost-Invader-capsule-intercept-distance2"
+              	"NormalGhost-Invader-capsule-isIntercept2"
         
         return agent_weights_and_serial_info_dict
     

@@ -99,11 +99,7 @@ class GameState:
         """
         return AgentRules.getLegalActions(self, agentIndex)
 
-<<<<<<< HEAD
-    def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False ):
-=======
     def generateSuccessor(self, agentIndex, action, ReturnDeadAgentList = False):
->>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         """
         Returns the successor state (a GameState object) after the specified agent takes the action.
         """
@@ -751,10 +747,6 @@ class AgentRules:
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
-<<<<<<< HEAD
-=======
-                        
->>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
         return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
@@ -1152,11 +1144,7 @@ def MP1(argv):
 if __name__ == '__main__':
 
     
-<<<<<<< HEAD
     import random, copy
-=======
-    import random, copy, sys
->>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1172,10 +1160,7 @@ if __name__ == '__main__':
     #print type(sa), sa 
     #print "&"*50
     options = readCommand(sys.argv[1:])  # Get game components based on input
-<<<<<<< HEAD
-=======
     print runGames( **options )
->>>>>>> ce30801a90f0799b98140ed4bf21dedf02835ca0
     #from EvolutionAlgorithm import Options
     #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
     #commands = readCommand( options ) 
