@@ -20,6 +20,7 @@ from game import Agent
 import distanceCalculator
 from util import nearestPoint
 import util
+import random
 
 # Note: the following class is not used, but is kept for backwards
 # compatibility with team submissions that try to import it.
@@ -70,8 +71,8 @@ class CaptureAgent(Agent):
     # Agent index for querying state
     self.index = index
     self.Param_Weights = Param_Weights
-    #print "self.Param_Weights"
-    #print self.Param_Weights
+    #print "capture index",self.index
+
     # Whether or not you're on the red team
     self.red = None
 

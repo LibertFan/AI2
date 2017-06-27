@@ -84,7 +84,7 @@ class QJT( CaptureAgent ):
 
     def chooseAction( self, gameState ):
         ### We need to make sure that the agent would not be eaten
-        print "x" * 50
+        #print "x" * 50
         foodLeft = len(self.getFood( gameState ).asList())
         if foodLeft <= 2:
             bestDist = 9999
@@ -439,8 +439,11 @@ class QJT( CaptureAgent ):
             if not gameState.getAgentState(agentIndex).isPacman:
                 DistanceToInvaderList = [ self.getMazeDistance( gameState.getAgentState( agentIndex ).getPosition(), gameState.getAgentState( invaderIndex).getPosition() )
                                                for invaderIndex in InvaderIndexList ]
-                minDistanceToInvader = min( DistanceToInvaderList )
-                features["ScaringGhost-Invader-minDistance"] = minDistanceToInvader
+                try:
+                    minDistanceToInvader = min( DistanceToInvaderList )
+                    features["ScaringGhost-Invader-minDistance"] = minDistanceToInvader
+                except:
+                    pass
                 #minDistanceToInvaderIndex = minDistanceToInvaderList.index( minDistanceToInvader )
                 #features["ScaringGhost-Invader-minDistance-numCarrying" + str( index ) ] = gameState.getAgentState( minDistanceToInvaderIndex ).numCarrying
                 minDistanceToEnemyField = min( [ self.getMazeDistance( gameState.getAgentState( agentIndex ).getPosition(), Pos ) for Pos in self.EnemyBorder ] )
@@ -507,7 +510,7 @@ class QJT( CaptureAgent ):
             "TeamDistance":0,
        		"eat-new-food":10,
       		"return-new-food":40,
-		    "return-new-food-number":1,
+		    "return-new-food-number":10,
         	"eat-capsules":60,
 
             "Ally-Pacman-Die":-100000,
@@ -535,8 +538,8 @@ class QJT( CaptureAgent ):
             "NormalGhost-Invader-minDistance":-20,#10,
             "NormalGhost-Invader-flee-intercept-distance":0,#2,
             "NormalGhost-Invader-flee-isIntercept":20,#100,
-            "NormalGhost-Invader-capsule-intercept-distance":0,#4,
-            "NormalGhost-Invader-capsule-isIntercept":30,#200,
+            "NormalGhost-Invader-capsule-intercept-distance":1,#4,
+            "NormalGhost-Invader-capsule-isIntercept":40,#200,
             }
 
 

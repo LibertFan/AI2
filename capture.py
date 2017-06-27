@@ -110,7 +110,6 @@ class GameState:
         AgentRules.applyAction(state, action, agentIndex)
         DeadAgentList = AgentRules.checkDeath(state, agentIndex)
         AgentRules.decrementTimer(state.data.agentStates[agentIndex])
-
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
@@ -375,8 +374,9 @@ class CaptureRules:
     def newGame(self, layout, agents, display, length, muteAgents, catchExceptions):
         initState = GameState()
         initState.initialize(layout, len(agents))
-        starter = random.randint(0, 1)
-        #print('%s team starts' % ['Red', 'Blue'][starter])
+        #starter = random.randint(0, 1)
+        starter = 0
+        print('%s team starts' % ['Red', 'Blue'][starter])
         game = Game(agents, display, self, startingIndex=starter, muteAgents=muteAgents,
                     catchExceptions=catchExceptions)
         game.state = initState
@@ -481,10 +481,10 @@ class AgentRules:
         """
         legal = AgentRules.getLegalActions(state, agentIndex)
         if action not in legal:
-            print "x"*50 
-            agentState = state.data.agentStates[ agentIndex ] 
+            print "x"*50
+            agentState = state.data.agentStates[ agentIndex ]
             print agentIndex, action, legal, agentState.configuration.getPosition()
-            #raise Exception("Illegal action " + str(action))
+            raise Exception("Illegal action " + str(action))
 
         # Update Configuration
         agentState = state.data.agentStates[agentIndex]
@@ -563,6 +563,15 @@ class AgentRules:
         if (position in myCapsules):
             state.data.capsules.remove(position)
             state.data._capsuleEaten = position
+            if isRed:
+                ourTeam = state.getRedTeamIndices()
+            else:
+                ourTeam = state.getBlueTeamIndices()
+            agents = [state.data.agentStates[agentIndex] for agentIndex in ourTeam]
+            for agent in agents:
+                if agent.getPosition() == position:
+                    agent.numCapsules += 1
+                    break  # the above should only be true for one agent...
 
             # Reset all ghosts' scared timers
             if isRed:
@@ -700,8 +709,9 @@ class AgentRules:
                 if manhattanDistance(ghostPosition, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
                     if otherAgentState.scaredTimer <= 0:
+                        otherAgentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, agentState, agentIndex)
-
+                        otherAgentState.eatEnemies += 1
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
                             score = -score
@@ -711,8 +721,9 @@ class AgentRules:
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
                     else:
+                        agentState.eatEnemies += 1
                         score = KILL_POINTS
-                        if state.isOnRedTeam(agentIndex):
+                        if state.isOnRedTeam( agentIndex ):
                             score = -score
                         state.data.scoreChange += score
                         otherAgentState.isPacman = False
@@ -728,6 +739,7 @@ class AgentRules:
                 if manhattanDistance(pacPos, agentState.getPosition()) <= COLLISION_TOLERANCE:
                     # award points to the other team for killing Pacmen
                     if agentState.scaredTimer <= 0:
+                        agentState.eatEnemies += 1
                         AgentRules.dumpFoodFromDeath(state, otherAgentState, agentIndex)
 
                         score = KILL_POINTS
@@ -739,6 +751,7 @@ class AgentRules:
                         otherAgentState.scaredTimer = 0
                         deadAgentList.append( index )
                     else:
+                        otherAgentState.eatEnemies += 1
                         score = KILL_POINTS
                         if state.isOnRedTeam(agentIndex):
                             score = -score
@@ -747,6 +760,7 @@ class AgentRules:
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
+
         return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
@@ -777,9 +791,8 @@ def parseAgentArgs(str):
         opts[key] = val
     return opts
 
-def readCommand( argv = None, dict_argv = None ):
-#def readCommand(argv = None):
-    #Param_Weights = None
+
+def readCommand(argv):
     """
     Processes the command used to run pacman from the command line.
     """
@@ -844,43 +857,8 @@ def readCommand( argv = None, dict_argv = None ):
                       help=default('How many episodes are training (suppresses output)'), default=0)
     parser.add_option('-c', '--catchExceptions', action='store_true', default=False,
                       help='Catch exceptions and enforce time limits')
-    """
-    parser.add_option('-W','--Param_Weights',type='dict',help='Weights for paramerters in the following class',\
-                      default= ({'eats-invader':round(random.random()*10,2), 'invaders-1-step-away':round(random.random()*5,2),\
-                      'teammateDist':round(random.random()*5,2), 'closest-food':round(-random.random()*5,2),\
-                      'eats-capsules':round(random.random()*20,2), '#-of-dangerous-ghosts-1-step-away':round(-random.random()*40,2),\
-                      'eats-ghost':round(random.random()*3,2), '#-of-harmless-ghosts-1-step-away':round(random.random(),2),\
-                      'stopped':round(-random.random()*10,2), 'eats-food':round(random.random()*3,2) },\
-                      {'eats-invader':round(random.random()*10,2), 'invaders-1-step-away':round(random.random()*5,2),\
-                      'teammateDist': round(random.random()*5,2), 'closest-food':round(-random.random()*5,2),\
-                      'eats-capsules':round(random.random()*20,2), '#-of-dangerous-ghosts-1-step-away':round(-random.random()*40,2),\
-                      'eats-ghost':round(random.random()*3,2), '#-of-harmless-ghosts-1-step-away':round(random.random(),2),\
-                      'stopped':round(-random.random()*10,2), 'eats-food':round(random.random()*3,2)}) ) 
-    """
-    if dict_argv is None:
-        options, otherjunk = parser.parse_args(argv)  
-        Param_Weights_1 = None
-        Param_Weights_2 = None
-    else:
-        options = dict_argv
-        Param_Weights_1 = options.Param_Weights_1
-        Param_Weights_2 = options.Param_Weights_2
-        otherjunk = []
-    """   
-    if Param_Weights is None:
-        Param_Weights_1 = None
-        Param_Weights_2 = None
-    else:
-        Param_Weights_1, Param_Weights_2 = Param_Weights
-    print Param_Weights_1, Param_Weights_2    
-    """
-    #else:
-    #  options = dict_argv
-    #  otherjunk = []
-    #print "="*25,"options","="*25
-    #print "options:",options
-    #print "="*25,"otherjunk","="*25
-    #print "otherjunk:",otherjunk
+
+    options, otherjunk = parser.parse_args(argv)
     assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)
     args = dict()
 
@@ -910,7 +888,7 @@ def readCommand( argv = None, dict_argv = None ):
     args['redTeamName'] = options.red_name
     args['blueTeamName'] = options.blue_name
 
-    if options.fixRandomSeed: random.seed('cs188')
+    #if options.fixRandomSeed: random.seed('cs188')
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.replay != None:
@@ -921,34 +899,18 @@ def readCommand( argv = None, dict_argv = None ):
         replayGame(**recorded)
         sys.exit(0)
 
-    #Choose a pacman agent
-    #print "options.redOpts:",options.redOpts
+    # Choose a pacman agent
     redArgs, blueArgs = parseAgentArgs(options.redOpts), parseAgentArgs(options.blueOpts)
-    #print "options.redOpts:", options.redOpts, "redArgs", redArgs
     if options.numTraining > 0:
         redArgs['numTraining'] = options.numTraining
         blueArgs['numTraining'] = options.numTraining
-    #print "options.textgraphics:",options.textgraphics,"options.quiet:",options.quiet,"options.numTraining",options.numTraining
-  
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
-    #print "nokeyboard:",nokeyboard
-    #print '\nRed team %s with %s:' % (options.red, redArgs)
-    #print "options.red:",options.red,"nokeyboard:",nokeyboard,"redArgs",redArgs
-    #try: 
-    #print "X"*50
-    #print Param_Weights_1, Param_Weights_2 
-    #print "X"*50
-    redAgents = loadAgents(True, options.red, nokeyboard, redArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2)
-    #except:
-    #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
-         
-    #print '\nBlue team %s with %s:' % (options.blue, blueArgs)
-    #try: 
-    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_1)
-    #except:
-    #    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs )
-
+    print '\nRed team %s with %s:' % (options.red, redArgs)
+    redAgents = loadAgents(True, options.red, nokeyboard, redArgs)
+    print '\nBlue team %s with %s:' % (options.blue, blueArgs)
+    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs)
     args['agents'] = sum([list(el) for el in zip(redAgents, blueAgents)], [])  # list of agents
+
     numKeyboardAgents = 0
     for index, val in enumerate([options.keys0, options.keys1, options.keys2, options.keys3]):
         if not val: continue
@@ -965,7 +927,7 @@ def readCommand( argv = None, dict_argv = None ):
     import layout
     layouts = []
     for i in range(options.numGames):
-        if options.layout == 'RANDOM': 
+        if options.layout == 'RANDOM':
             l = layout.Layout(randomLayout().split('\n'))
         elif options.layout.startswith('RANDOM'):
             l = layout.Layout(randomLayout(int(options.layout[6:])).split('\n'))
@@ -983,12 +945,6 @@ def readCommand( argv = None, dict_argv = None ):
     args['numTraining'] = options.numTraining
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
-    if argv is not None:
-        args['serial_num'] = "Origin1"
-    else:
-        args['serial_num'] = options.serial_num 
-    #except:
-    #    pass   
     return args
 
 
@@ -1004,7 +960,7 @@ def randomLayout(seed=None):
 import traceback
 
 
-def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None, Param_Weights_2 = None):
+def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
     "Calls agent factories and returns lists of agents"
     try:
         if not factory.endswith(".py"):
@@ -1019,8 +975,8 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None
     args = dict()
     args.update(cmdLineArgs)  # Add command line args with priority
 
-    #print "Loading Team:", factory
-    #print "Arguments:", args
+    print "Loading Team:", factory
+    print "Arguments:", args
 
     # if textgraphics and factoryClassName.startswith('Keyboard'):
     #   raise Exception('Using the keyboard requires graphics (no text display, quiet or training games)')
@@ -1036,17 +992,7 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None
     if not isRed:
         indexAddend = 1
     indices = [2 * i + indexAddend for i in range(2)]
-
-    #print "load_agent, indices", indices 
-    #agent1, agent2 = createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2 )
-    #print agent1.index, agent2.index, agent1.Param_Weights, agent2.Param_Weights
-    #print "agents", agent_list
-
-    #print "X"*20,"loadAgent","X"*20
-    #print Param_Weights_1, Param_Weights_2 
-    #print "X"*50
-    return createTeamFunc( indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2 )
-
+    return createTeamFunc(indices[0], indices[1], isRed, **args)
 
 def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamName):
     rules = CaptureRules()
@@ -1068,14 +1014,13 @@ def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamNa
 
 
 def runGames(layouts, agents, display, length, numGames, record, numTraining, redTeamName, blueTeamName,
-             muteAgents=False, catchExceptions=False, serial_num = None):
+             muteAgents=False, catchExceptions=False):
     rules = CaptureRules()
     games = []
 
     if numTraining > 0:
         print 'Playing %d training games' % numTraining
-    
-    #print serial_num, "runGames begin!"
+
     for i in range(numGames):
         beQuiet = i < numTraining
         layout = layouts[i]
@@ -1087,13 +1032,9 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         else:
             gameDisplay = display
             rules.quiet = False
-        g = rules.newGame(layout, agents, gameDisplay, length, muteAgents, catchExceptions )
-        #print serial_num, "g has been set!"
+        g = rules.newGame(layout, agents, gameDisplay, length, muteAgents, catchExceptions)
         g.run()
-        #print serial_num, "g run over"
         if not beQuiet: games.append(g)
-
-        #print serial_num, " newGame finish "
 
         g.record = None
         if record:
@@ -1103,12 +1044,10 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
             components = {'layout': layout, 'agents': [game.Agent() for a in agents], 'actions': g.moveHistory,
                           'length': length, 'redTeamName': redTeamName, 'blueTeamName': blueTeamName}
             # f.close()
-            #print "recorded"
+            print "recorded"
             g.record = cPickle.dumps(components)
             with open('replay-%d' % i, 'wb') as f:
                 f.write(g.record)
-
-        #print serial_num, "Real Finish!"           
 
     if numGames > 1:
         scores = [game.state.data.score for game in games]
@@ -1119,79 +1058,26 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
         print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
         print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
+    return games
 
-        with open("train/"+str(serial_num)+".txt","a") as f:
-            f.write("\n\n")
-            for score in scores:
-                f.write(str(score)+",")
-            f.write("\n\n")
-        f.close()
-
-    return scores, redWinRate, blueWinRate, serial_num
 
 def save_score(game):
     with open('score', 'w') as f:
         print >> f, game.state.data.score
 
-def MP( dict_argv = None ):
-    option = readCommand( dict_argv = dict_argv )
-    return runGames(**option)      
-
-def MP1(argv):
-    option = readCommand( argv )
-    return runGames(**option)  
-
 if __name__ == '__main__':
 
-    
-    import random, copy
-    #from pathos import multiprocessing as mp
-    #random.seed(10)
-    #from EvolutionAlgorithm import EvolutionAlgorithm
-    #ea = EvolutionAlgorithm( BasicAgent = "baselineTeam", EnemiesAgentList = [ "baselineTeam", ])
-    #agent_weights_dict_1 = ea.set_initial_weights()
-    #agent_weights_dict_2 = ea.set_initial_weights()
-    #print agent_weights_dict_1 
-    #argv_list = ea.convert_weights_to_option( agent_weights_dict )
-    #print sys.argv[1:]
-    #print type(sys.argv[1:])
-    #command = ["-q"]
-    #sa = sys.argv[1:]
-    #print type(sa), sa 
-    #print "&"*50
+    """
+    The main function called when pacman.py is run
+    from the command line:
+    > python capture.py
+    See the usage string for more details.
+    > python capture.py --help
+    """
+    import random
+    #random.seed( 123 )
     options = readCommand(sys.argv[1:])  # Get game components based on input
-    print runGames( **options )
-    #from EvolutionAlgorithm import Options
-    #options = Options( numGames=1, quiet = False, serial_num=(10,100) )  
-    #commands = readCommand( options ) 
-    #print commands
-    #print argv[1:]  
-    #options_list = [ readCommand(sys.argv[1:]) , readCommand(sys.argv[1:]), readCommand(sys.argv[1:]) ]
-    #print options_list
-    
-    #p = mp.ProcessPool( 4 )
-    #t1 = time.time()
-                                
-    #results = []
-    #games = []
-    #for i in range(4):
-    #    results.append( p.apipe( MP1, sys.argv[1:] ) ) 
-    #for r in results:
-    #    games.append( r.get() )
-    #for v in games:
-    #    print v[0][0].state.data.score
-    
-    #print type(options), options 
-    games, redWinRate, blueWinRate, serial_num = runGames(**options)
-    print games, redWinRate, blueWinRate, serial_num     
-    #print len(games),serial_num
-    #print "="*50
-    #for game in games:
-    #	print game.state.data.score
-    #print "+"*50
-    #"""
-    #save_score(games[0])
-    #import cProfile
-    #cProfile.run('runGames( **options )', 'profile')
+    games = runGames(**options)
 
-
+    save_score(games[0])
+    print games[0].state.data.score
