@@ -38,7 +38,7 @@ class BasicNode:
         features[4] = []
         for j, position in enumerate(gameState.data.capsules):
             features[4].append(('capsule' + str(j), position))
-        food = gameState.data.food.asList()
+        food = gameState.data.layout.food.asList()
         for position in food:
             features[4].append(('food', position))
         return features

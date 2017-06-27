@@ -57,10 +57,10 @@ class StateNode( BasicNode ):
             self.Bound = self.StateParent.Bound
             CurrentGameState = self.StateParent.GameState
             for index, action in self.LastActions.items():
-		try:
+                try:
                     CurrentGameState = CurrentGameState.generateSuccessor( index, action )
                 except:
-		    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
+                    print index, action, StateParent.GameState.getAgentState( index ).getPosition()
                     CurrentStateNode = StateParent
                     while CurrentStateNode is not None:
                         print CurrentStateNode.IndexPositions[ index ], CurrentStateNode.GameState.getAgentState( index ).getPosition()
@@ -442,7 +442,7 @@ class StateNode( BasicNode ):
         p = self
         parent_atoms_tuples = p.cacheMemory[character]
         self.updateCacheMemory(all_memory, parent_atoms_tuples)
-        for succ in ChildrenNone.values():
+        for actionKey,succ in ChildrenNone.items():
             # print succ.allies
             succ_atoms_tuples = succ.generateTuples()
             '''
@@ -453,19 +453,22 @@ class StateNode( BasicNode ):
             self.updateCacheMemory(all_memory,succ_atoms_tuples)
             if len(succ_atoms_tuples[4]) - len(parent_atoms_tuples[4]) == 0:
                 if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[0]]) == 0:
-                    succ.novel = False
+                    ChildrenNone[actionKey] = ReplaceNode()
+                    #succ.novel = False
                     #print 1
                     continue
                 else:
                     if len(succ_atoms_tuples[succ.allies[0]] - parent_atoms_tuples[parent_allies[1]]) == 0:
                         if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[0]]) == 0 or \
                                         len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
-                            succ.novel = False
+                            ChildrenNone[actionKey] = ReplaceNode()
+                            # succ.novel = False
                             #print 2
                             continue
                     else:
                         if len(succ_atoms_tuples[succ.allies[1]] - parent_atoms_tuples[parent_allies[1]]) == 0:
-                            succ.novel = False
+                            ChildrenNone[actionKey] = ReplaceNode()
+                            #succ.novel = False
                             #print 3
                             continue
 
@@ -494,12 +497,12 @@ class ActionNode( BasicNode ):
         if self.LatentScore is not None:
             return self.LatentScore
         else:
-	    LatentScore = 0
+            LatentScore = 0
        
-	    for index, action in zip( self.allies, list(self.LastActions) ):
-		LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights()	
-	    self.LatentScore = LatentScore
-            return self.LatentScore  
+            for index, action in zip( self.allies, list(self.LastActions) ):
+                LatentScore += self.getIndexFeatures( self.StateParent.GameState, action, index ) * self.getWeights()
+            self.LatentScore = LatentScore
+            return self.LatentScore
 
     def getWeights( self ):
         return {'eats-invader': 5, 'invaders-1-step-away': 0, 'teammateDist': 1.5, 'closest-food': -1,

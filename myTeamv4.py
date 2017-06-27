@@ -20,7 +20,7 @@ import math
 from util import nearestPoint
 import copy
 from collections import defaultdict, deque
-from pathos import multiprocessing as mp
+#from pathos import multiprocessing as mp
 import sys
 import numpy as np
 import multiprocessing 

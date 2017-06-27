@@ -14,7 +14,8 @@ import random, time, util, sys
 from game import Directions, Actions
 from util import nearestPoint
 from decimal import Decimal
-from itertool import product
+from itertools import product
+import copy
 
 #################
 # Team creation #
@@ -65,12 +66,12 @@ class QJT( CaptureAgent ):
 
         MaxMinScore = -9999
         ChosedAlliesAction = None
-        for AlliesAction in  list( product( list( product( allies[0], gameState.getLegalActions( allies[0] ) ) ),\
-                                             list( product( allies[1], gameState.getLegalActions( allies[1] ) ) ) ) ):
+        for AlliesAction in  list( product( list( product( self.allies[0], gameState.getLegalActions( self.allies[0] ) ) ),\
+                                             list( product( self.allies[1], gameState.getLegalActions( self.allies[1] ) ) ) ) ):
             MinScore = 9999    
             ChosedEnemiesAction = None
-            for EnemiesAction in  list( product( list( product( enemies[0], gameState.getLegalActions( allies[0] ) ) ),\
-                                                 list( product( enemies[1], gameState.getLegalActions( enemies[1] ) ) ) ) ):
+            for EnemiesAction in  list( product( list( product( self.enemies[0], gameState.getLegalActions( self.enemies[0] ) ) ),\
+                                                 list( product( self.enemies[1], gameState.getLegalActions( self.enemies[1] ) ) ) ) ):
 
                 IndexActions = AlliesAction + EnemiesAction
                 CurrentScore = self.evaluate( gameState, IndexActions )
@@ -160,17 +161,17 @@ class QJT( CaptureAgent ):
         chaseAgentPositionList = [ gameState.getAgetState( agentIndex ).getPositions() for agentIndex in chaseAgentIndexList ]
         
         escapeAgentToBorderDistanceList = []
-        for escapeAgentPos in escapAgentPositionList:
+        for escapeAgentPos in escapeAgentPositionList:
             escapeAgentToBorderDistance = []
             for pos in Objs:
                 escapeAgentToBorderDistance.append( self.getMazeDistance( pos, escapeAgentPos ) )
-            escapeAgentToBorderDistanceeList.append( escapeAgentToBorderDistance )
+                escapeAgentToBorderDistanceList.append( escapeAgentToBorderDistance )
 
         chaseAgentToBorderDistanceList = []    
         for chaseAgentPos in chaseAgentPositionList:                    
             chaseAgentToBorderDistance = []
             for pos in Objs:
-                chaseAgentToBorderDistance.append( self.getMazeDistance( pos, AgentPos ) )
+                chaseAgentToBorderDistance.append( self.getMazeDistance( pos, chaseAgentPos ) )
             chaseAgentToBorderDistanceList.append( chaseAgentToBorderDistance )
 
         interceptDistanceList = []
