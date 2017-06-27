@@ -376,7 +376,7 @@ class CaptureRules:
         initState = GameState()
         initState.initialize(layout, len(agents))
         starter = random.randint(0, 1)
-        print('%s team starts' % ['Red', 'Blue'][starter])
+        #print('%s team starts' % ['Red', 'Blue'][starter])
         game = Game(agents, display, self, startingIndex=starter, muteAgents=muteAgents,
                     catchExceptions=catchExceptions)
         game.state = initState
@@ -747,7 +747,6 @@ class AgentRules:
                         agentState.configuration = agentState.start
                         agentState.scaredTimer = 0
                         deadAgentList.append( agentIndex )
-                        
         return deadAgentList
 
     checkDeath = staticmethod(checkDeath)
@@ -943,7 +942,7 @@ def readCommand( argv = None, dict_argv = None ):
     #except:
     #    redAgents = loadAgents(True, options.red, nokeyboard, redArgs )
          
-    print '\nBlue team %s with %s:' % (options.blue, blueArgs)
+    #print '\nBlue team %s with %s:' % (options.blue, blueArgs)
     #try: 
     blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_1)
     #except:
@@ -1145,7 +1144,7 @@ def MP1(argv):
 if __name__ == '__main__':
 
     
-    import random, copy, sys
+    import random, copy
     #from pathos import multiprocessing as mp
     #random.seed(10)
     #from EvolutionAlgorithm import EvolutionAlgorithm
@@ -1183,8 +1182,8 @@ if __name__ == '__main__':
     #    print v[0][0].state.data.score
     
     #print type(options), options 
-    #games, serial_num = runGames(**commands)
-     
+    games, redWinRate, blueWinRate, serial_num = runGames(**options)
+    print games, redWinRate, blueWinRate, serial_num     
     #print len(games),serial_num
     #print "="*50
     #for game in games:
