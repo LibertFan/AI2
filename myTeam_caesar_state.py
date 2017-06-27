@@ -52,6 +52,7 @@ class QJT( CaptureAgent ):
         CaptureAgent.registerInitialState(self, gameState)
         self.allies = self.getTeam( gameState)
         self.enemies = self.getOpponents( gameState )
+        self.FoodSum = len( self.getFood( gameState ).asList() )
 
         CurrentLayout = gameState.data.layout
         height = CurrentLayout.height
@@ -143,7 +144,7 @@ class QJT( CaptureAgent ):
                 bestAction = action
             else:
                 BestAction = action
-        print "x" * 50
+        #print "x" * 50
         return bestAction
 
     def getSuccessor(self, gameState, actions, returnDeadAgent = False):
@@ -463,7 +464,9 @@ class QJT( CaptureAgent ):
                     # raise Exception
                 try:
                     minDistanceToInvader = min(DistanceToInvaderList)
-                    features["NormalPacman-Invader-minDistance"] = minDistanceToInvader
+                    InvaderIndex = DistanceToInvaderList.index( minDistanceToInvader )
+                    features["NormalPacman-Invader-minDistance"] = minDistanceToInvader * \
+                                                                   ( gameState.getAgentState( InvaderIndex ).numCarrying + 4 ) / self.FoodSum
                 except:
                     #print "Invaders is None"
                     pass
@@ -525,7 +528,7 @@ class QJT( CaptureAgent ):
 
             "NormalPacman-Invader-minDistance":-0.5,
 		    "Pacman-Food-minDistance":-1,
-            "Pacman-Capsule-minDistance":-8,
+            "Pacman-Capsule-minDistance":-25,
          	"Pacman-UnScaredEnemy-minDistance":0,
             "Pacman-UnScaredEnemy-minDistance-numCarrying":0,
             "Pacman-UnScaredEnemy-flee-intercept-minDistance":0,
