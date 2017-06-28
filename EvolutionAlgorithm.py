@@ -1,16 +1,20 @@
 from capture import runGames, readCommand, MP
-import random, copy
+import random, copy, itertools
 from pathos import multiprocessing as mp
 import numpy as np
 #import multiprocessing as mp
-NumGames = 40
+NumGames = 10
+#global BestActionDict
+#BestActionDict = dict()
+#BestActionDict["ss"] = "ss"
+
 class Options(object):
     def __init__( self, redOpts = '', blueOpts = '', catchExceptions = False, blue_name = 'Blue', \
                   numTraining = 0, replay = None, super_quiet = False,blue = 'baselineTeam', \
-                  red_name = 'Red', layout = 'defaultCapture', numGames = NumGames, red = 'baselineTeam',\
+                  red_name = 'Red', layout = 'fastCapture', numGames = NumGames, red = 'baselineTeam',\
                   textgraphics = False, fixRandomSeed = False, keys1 = False, keys0 = False, keys3 = False,\
-                  keys2 = False, quiet = True, record = False, time = 1200, zoom = 1, Param_Weights_1 = None,\
-                  Param_Weights_2 = None, serial_num = None ):
+                  keys2 = False, quiet = True, record = False, time = 400, zoom = 1, Param_Weights = None,\
+                  serial_num = None ):
         self.redOpts = redOpts
         self.blueOpts = blueOpts
         self.catchExceptions = catchExceptions
@@ -33,8 +37,8 @@ class Options(object):
         self.record = record
         self.time = time
         self.zoom = zoom 
-        self.Param_Weights_1 = Param_Weights_1
-        self.Param_Weights_2 = Param_Weights_2
+        self.Param_Weights = Param_Weights
+        #self.Param_Weights_2 = Param_Weights_2
         #self.Record = ( str( self.red_name), str( self.blue_name), 0, 0, 0 ) 
         self.serial_num = serial_num 
 
@@ -48,7 +52,7 @@ class EvolutionAlgorithm(object):
          
         self.NumUnit = NumUnit
         self.alpha = alpha
-        self.evolution_generations = 200                 
+        self.evolution_generations = 50 
 
     def set_initial_weights( self ):
         agent_weights_and_serial_info_dict = dict() 
@@ -56,71 +60,54 @@ class EvolutionAlgorithm(object):
         #agent_weights_dict = dict()
         for i in range( self.NumUnit ):
             initial_weights = dict()
-            initial_weights["stopped"] = round( random.random()*2, 2 ) * -5, 
-            initial_weights["reverse"] = round( random.random()*2, 2 ) * -5,
-       	    initial_weights["eat-new-food"] = round( random.random()*2, 2 ) * 2,
-      	    initial_weights["return-new-food"] = round( random.random()*2, 2) * 5,
-	    initial_weights["return-new-food-number"] = round( random.random()*2, 2 ) * 2,
-            initial_weights["eat-capsules"] = round( random.random()*2, 2 ) * 20,
-            initial_weights["Ally-Pacman-Die"] = round( random.random()*2, 2 ) * -10,
-            initial_weights["Ally-Pacman-Die-food"] = round( random.random()*2, 2 ) * -2,
-	    initial_weights["Ally-Ghost-Die"] = round( random.random()*2, 2 ) * -5,
-            initial_weights["Enemy-Pacman-Die"] = round( random.random()*2, 2 ) * 10,
-            initial_weights["Enemy-Pacman-Die-food"] = round( random.random()*2, 2 ) * 2,
-	    initial_weights["Enemy-Ghost-Die"] = round( random.random()*2, 2 ) * 5,	
-	    initial_weights["Pacman-Food-minDistance1"] = round( random.random()*2, 2 ) * -1,
-	    initial_weights["Pacman-Food-minDistance2"] = round( random.random()*2, 2 ) * -1,
-            initial_weights["Pacman-Capsule-minDistance1"] = round( random.random()*2, 2 ) * -2,
-	    initial_weights["Pacman-Capsule-minDistance2"] = round( random.random()*2, 2 ) * -2,
-            initial_weights["Pacman-UnScaredEnemy-minDistance1"] = round( random.random()*2, 2 ) * 2,
-            initial_weights["Pacman-UnScaredEnemy-minDistance-numCarrying1"] = round( random.random()*2, 2 ) * 2, 
-            initial_weights["Pacman-UnScaredEnemy-flee-intercept-minDistance1"] = round( random.random()*2, 2 ) * -2, 
-            initial_weights["Pacman-UnScaredEnemy-flee-isIntercept1"] = round( random.random()*2, 2 ) * 10,
-            #"Pacman-UnScaredEnemy-flee-numCarrying1":,
-            initial_weights["Pacman-UnScaredEnemy-capsule-intercept-minDistance1"] = round( random.random()*2, 2 ) * -2,
-            initial_weights["Pacman-UnScaredEnemy-capsule-isIntercept1"] = round( random.random()*2, 2 ) * 5,
-            initial_weights["Pacman-ScaredEnemy-flee-isIntercept1"] = round( random.random()*2, 2 ) *
-            #"Pacman-ScaredEnemy-flee-numCarrying1":,
-            initial_weights["Pacman-UnScaredEnemy-minDistance2"] ,
-                "Pacman-UnScaredEnemy-minDistance-numCarrying2" 
-                "Pacman-UnScaredEnemy-flee-intercept-minDistance2" 
-                "Pacman-UnScaredEnemy-flee-isIntercept2"
-                "Pacman-UnScaredEnemy-flee-numCarrying2"
-                "Pacman-UnScaredEnemy-capsule-intercept-minDistance2"
-                "Pacman-UnScaredEnemy-capsule-isIntercept2"
-               	"Pacman-ScaredEnemy-flee-isIntercept2"
-              	"Pacman-ScaredEnemy-flee-numCarrying2"
-            initial_weights["ScaringGhost-Invader-minDistance1"] = round( random.random()*2, 2 ) * 1,
-            	#"ScaringGhost-Invader-minDistance-numCarrying1":, 
-            initial_weights["ScaringGhost-EnenmyField-minDistance1"] = round( random.random()*2, 2) * -2,
-		###"ScaringGhost-Invader-EnemyField-isIntercept":-5,				
+            initial_weights["stopped"] = round( random.random()*2, 2 ) * -2 
+            initial_weights["reverse"] = round( random.random()*2, 2 ) * -2
 
-            initial_weights["NormalGhost-Invader-minDistance1"] = round( random.random()*2,2) * -1,
-		#"NormalGhost-Invader-minDistance-numCarrying1":-0.1,
-            initial_weights["NormalGhost-Invader-flee-intercept-distance1": round( random.random()*2, 2) * 2,
-            initial_weights["NormalGhost-Invader-flee-isIntercept1"] = round( random.random()*2, 2) * -10
-                #"NormalGhost-Invader-flee-intercept-numCarrying1":,
-            initial_weights["NormalGhost-Invader-capsule-intercept-distance1"] = round( random.random() *2, 2) * 2,
-            initial_weights["NormalGhost-Invader-capsule-isIntercept1"] = round( random.random() *2, 2) * -20
-          	"ScaringGhost-Invader-minDistance2"
-            	"ScaringGhost-Invader-minDistance-numCarrying2" 
-            	"ScaringGhost-EnenmyField-minDistance2"
-            	"NormalGhost-Invader-minDistance2"
-		"NormalGhost-Invader-minDistance-numCarrying2"
-                "NormalGhost-Invader-flee-intercept-distance2"
-                "NormalGhost-Invader-flee-isIntercept2"
-                "NormalGhost-Invader-flee-intercept-numCarrying2" 
-                "NormalGhost-Invader-capsule-intercept-distance2"
-              	"NormalGhost-Invader-capsule-isIntercept2"
-        
+       	    initial_weights["eat-new-food"] = round( random.random()*2, 2 ) * 1
+      	    initial_weights["return-new-food"] = round( random.random()*2, 2) * 4
+	    initial_weights["return-new-food-number"] = round( random.random()*2, 2 ) * 1
+            initial_weights["eat-capsules"] = round( random.random()*2, 2 ) * 6
+            initial_weights["Ally-Pacman-Die"] = round( random.random()*2, 2 ) * -10000
+            initial_weights["Ally-Pacman-Die-food"] = round( random.random()*2, 2 ) * -100
+	    initial_weights["Ally-Ghost-Die"] = round( random.random()*2, 2 ) * -10000
+            initial_weights["Enemy-Pacman-Die"] = round( random.random()*2, 2 ) * 50
+
+
+            initial_weights["Enemy-Pacman-Die-food"] = round( random.random()*2, 2 ) * 0.5
+	    initial_weights["Enemy-Ghost-Die"] = round( random.random()*2, 2 ) * 50	
+
+            initial_weights["Shift-Pacman-Ghost"] = round( random.random()*2, 2) * 2
+            initial_weights["Shift-Ghost-Pacman"] = round( random.random()*2, 2) * -2 
+            initial_weights["NormalPacman-Invader-minDistance"] = round( random.random( )*2, 4) * -0.05 		
+	    initial_weights["Pacman-Food-minDistance"] = round( random.random()*2, 2 ) * -0.1
+            initial_weights["Pacman-Capsule-minDistance"] = round( random.random()*2, 2 ) * -2.5
+            initial_weights["Pacman-UnScaredEnemy-minDistance"] = round( random.random()*2, 2 ) * 0
+            initial_weights["Pacman-UnScaredEnemy-minDistance-numCarrying"] = round( random.random()*2, 2 ) * 0
+            initial_weights["Pacman-UnScaredEnemy-flee-intercept-minDistance"] = round( random.random()*2, 2 ) * 0
+            initial_weights["Pacman-UnScaredEnemy-flee-isIntercept"] = round( random.random()*2, 2 ) * -2
+            initial_weights["Pacman-UnScaredEnemy-capsule-intercept-minDistance"] = round( random.random()*2, 2 ) * 0
+            initial_weights["Pacman-UnScaredEnemy-capsule-isIntercept"] = round( random.random()*2, 2 ) * 0
+            initial_weights["Pacman-ScaredEnemy-flee-isIntercept"] = round( random.random()*2, 2 ) * 0
+            initial_weights["ScaringGhost-Invader-minDistance"] = round( random.random()*2, 2 ) * 0
+            initial_weights["ScaringGhost-EnenmyField-minDistance"] = round( random.random()*2, 2) * -0
+
+            initial_weights["NormalGhost-Invader-minDistance"] = round( random.random()*2,2) * -2
+            initial_weights["NormalGhost-Invader-flee-intercept-distance"] = round( random.random()*2, 2) * 0
+            initial_weights["NormalGhost-Invader-flee-isIntercept"] = round( random.random()*2, 2) * 2
+            initial_weights["NormalGhost-Invader-capsule-intercept-distance"] = round( random.random() * 2, 3) * 0.1
+            initial_weights["NormalGhost-Invader-capsule-isIntercept"] = round( random.random() *2, 2) * 4
+            #print "initial_weights",initial_weights		
+            agent_weights_and_serial_info_dict[i] = ( initial_weights,( i, 0, 0, 0 ) )
+        #print agent_weights_and_serial_info_dict 
         return agent_weights_and_serial_info_dict
     
     def convert_weights_to_option( self, agent_weights_and_serial_info_dict):
         argv_list = []
         for agent_weights, serial_info in agent_weights_and_serial_info_dict.values():
-            weights_1, weights_2 = agent_weights 
+            #weights_1 = weights_2 = agent_weights
+            #print "convert_weights_to_option", agent_weights 
             for index, EnemiesAgent in enumerate( self.EnemiesAgentList ):
-		argv = Options(blue=self.BasicAgent, red=EnemiesAgent, Param_Weights_1=weights_1, Param_Weights_2=weights_2, serial_num = serial_info )
+		argv = Options(red=self.BasicAgent, blue=EnemiesAgent, Param_Weights=agent_weights, serial_num = serial_info )
 		argv_list.append( argv )
         return argv_list 
 
@@ -128,17 +115,20 @@ class EvolutionAlgorithm(object):
     def evaluate( self, argv_list ):
         score_dict = dict()
         print "c"*50
-        p = mp.ProcessPool( 24 )
+        p = mp.ProcessPool( 30 )
         results = []
         for argv in argv_list:
             #print "argv", argv
+            #print "argv", argv
+            #print "argv-weights", argv.Param_Weights 
             results.append( p.apipe( MP, argv ) )
- 
+	
+        #print "result argv" 
         for r in results:
             c = r.get() 
             scores, redWinRate, blueWinRate, current_serial_info = c
             print "=" * 50
-            print scores, redWinRate, blueWinRate
+            print scores, redWinRate, blueWinRate, current_serial_info
             print "current_serial_info"
             print current_serial_info  
             agent_index, CurrentGameNum, CurrentAverageScore, CurrentWinRate = current_serial_info
@@ -152,8 +142,8 @@ class EvolutionAlgorithm(object):
             # SumWin = CurrentGameNum * CurrentWinRate + NumGames * redWinRate
 
             ### the following set is specfic for blue team 
-            SumScore = CurrentGameNum * CurrentAverageScore - sum( scores )
-            SumWin = CurrentGameNum * CurrentWinRate + NumGames * blueWinRate
+            SumScore = CurrentGameNum * CurrentAverageScore + sum( scores )
+            SumWin = CurrentGameNum * CurrentWinRate + NumGames * redWinRate
             current_serial_info = ( agent_index, SumGameNum, SumScore / float( SumGameNum), SumWin / float( SumGameNum ) )  
             score_dict[ agent_index ] =  current_serial_info
             
@@ -168,7 +158,7 @@ class EvolutionAlgorithm(object):
         #print "selected_agent_score_pair_list", selected_agent_WinRate_Score_pair_list
         selected_sorted_agent_weights_and_serial_info_list = []
         sorted_score_mat = np.array( sorted( score_mat, key = lambda x: ( x[-1], x[-2] ), reverse = True ) )
-        for info in sorted_score_mat[ : self.NumUnit / 2 ]:
+        for info in sorted_score_mat[ : 5 ]:
             agent_index = info[0]
             agent_weights, serial_info = agent_weights_and_serial_info_dict[ agent_index ] 
             new_agent_weights_and_serial_info = ( agent_weights, info )
@@ -180,26 +170,28 @@ class EvolutionAlgorithm(object):
     def crossover( self, agent_weights1, agent_weights2 ): 
         agent_weights_list = [ agent_weights1, agent_weights2 ]  
         new_weights_1 = dict()
-        for k in agent_weights1[0].keys():
+        for k in agent_weights1.keys():
             index = random.randint(0,1)
-            new_weights_1[k] = agent_weights_list[index][0][k] 
-        new_weights_2 = dict() 
-        for k in agent_weights1[1].keys():
-            index = random.randint(0,1)
-            new_weights_2[k] = agent_weights_list[index][1][k]  
-        return ( new_weights_1, new_weights_2 )
+            new_weights_1[k] = agent_weights_list[index][k] 
+        #new_weights_2 = dict() 
+        #for k in agent_weights1[1].keys():
+        #    index = random.randint(0,1)
+        #    new_weights_2[k] = agent_weights_list[index][1][k]  
+        #return ( new_weights_1, new_weights_1 )
+        return new_weights_1
    
     def mutations( self, agent_weights, mu=0, sigma = 1 ):
         new_weights_1 = dict()
-        for k, v in agent_weights[0].items():
+        for k, v in agent_weights.items():
+            print k, v 
             v += random.gauss( mu, sigma ) 
             new_weights_1[k] = v
-        new_weights_2 = dict()
-        for k, v in agent_weights[1].items():
-            v += random.gauss( mu, sigma ) 
-            new_weights_2[k] = v
-
-        return ( new_weights_1, new_weights_2 ) 
+        #new_weights_2 = dict()
+        #for k, v in agent_weights[1].items():
+        #    v += random.gauss( mu, sigma ) 
+        #    new_weights_2[k] = v
+        return new_weights_1
+        #return ( new_weights_1, new_weights_1 ) 
 
     def GenerateAgents( self, agent_weights_and_serial_info_list, mu=0, sigma = 1):
         if len( agent_weights_and_serial_info_list ) != 5:
@@ -207,7 +199,7 @@ class EvolutionAlgorithm(object):
         else:
             new_weights_and_serial_info_list = []
             for weights, serial_info in agent_weights_and_serial_info_list:
-                for i in range(4):
+                for i in range(3):
                     new_weights = self.mutations( weights )
                     new_weights_and_serial_info_list.append( ( new_weights, ( -1, 0, 0, 0 ) ) )
              
@@ -228,8 +220,6 @@ class EvolutionAlgorithm(object):
                 agent_weights_dict[index] = ( agent_weights, new_serial_info )
      
  	    return agent_weights_dict 
-          
-
  
     def mutation( self, agent_weights_and_serial_info_list, mu=0, sigma=1 ):
         if len( agent_weights_and_serial_info_list ) != self.NumUnit / 2:
@@ -270,9 +260,9 @@ class EvolutionAlgorithm(object):
 
             store_scores.append( score_mat )
             selected_sorted_weights_list = self.champion( score_mat, agent_weights_dict )
-            agent_weights_dict = self.mutation( selected_sorted_weights_list ) 
+            agent_weights_dict = self.GenerateAgents( selected_sorted_weights_list ) 
              
-            with open("score_0623v4_rB.txt","a") as f:
+            with open("score_0628v5_rB.txt","a") as f:
                  f.write( str( iters ) )
                  f.write( "\n" )
                  f.write( str( score_mat ) )
@@ -296,14 +286,14 @@ class EvolutionAlgorithm(object):
 
 
 def main():
-    ea = EvolutionAlgorithm( BasicAgent = "myTeamBasic" )
+    ea = EvolutionAlgorithm( BasicAgent = "myTeam_caesar_state" )
     agent_weights_dict, store_scores = ea.evolution() 
-    with open("agent_weights_dict_0623v4_rB.txt","w") as f:
+    with open("agent_weights_dict_0628v5_rB.txt","w") as f:
          f.write( str(agent_weights_dict) )
          f.write("\n\n\n")
          f.write( str(store_scores) )
     f.close() 
-    np.save( "score_0623v4_rB.npy", store_scores )
+    np.save( "score_0628v5_rB.npy", store_scores )
 
 if __name__=="__main__":
     main()

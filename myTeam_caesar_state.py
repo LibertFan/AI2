@@ -15,14 +15,14 @@ from game import Directions, Actions
 from util import nearestPoint
 from decimal import Decimal
 from itertools import product, combinations, permutations
-
-
+#from EvolutionAlgorithm import BestActionDict
+#print BestActionDict
 #################
 # Team creation #
 #################
 
 def createTeam(firstIndex, secondIndex, isRed,
-               first='OffensiveReflexAgent', second='DefensiveReflexAgent', Param_Weights_1 = None, Param_Weights_2 = None):
+               first='OffensiveReflexAgent', second='DefensiveReflexAgent', Param_Weights_1 = None, Param_Weights_2 = None, serial_num = None ):
     """
     This function should return a list of two agents that will form the
     team, initialized using firstIndex and secondIndex as their agent
@@ -37,14 +37,15 @@ def createTeam(firstIndex, secondIndex, isRed,
     any extra arguments, so you should make sure that the default
     behavior is what you want for the nightly contest.
     """
-    return [eval("QJT")(firstIndex), eval("QJT")(secondIndex)]
+    print "SerialNum", serial_num
+    return [eval("QJT")(firstIndex, Param_Weights = Param_Weights_1, SerialNum = serial_num), eval("QJT")(secondIndex, Param_Weights = Param_Weights_2, SerialNum = serial_num)]
 
 
 ##########
 # Agents #
 ##########
-global BestAction
-BestAction = None
+#global BestAction
+#BestAction = None
 
 class QJT( CaptureAgent ):
     def registerInitialState(self, gameState):
@@ -78,6 +79,10 @@ class QJT( CaptureAgent ):
         else:
             self.AllyBorder = self.BlueBorder
             self.EnemyBorder = self.RedBorder
+        #print "Weights",self.getWeights() 
+        #print "SerialNum", self.SerialNum 
+        #if self.SerialNum is not None:
+        #    BestActionDict[self.SerialNum] = None
         #print "RedBorder", self.RedBorder
         #print "BlueBorder", self.BlueBorder
         #print "AllyBorder", self.AllyBorder
@@ -86,6 +91,7 @@ class QJT( CaptureAgent ):
     def chooseAction( self, gameState ):
         ### We need to make sure that the agent would not be eaten
         #print "x" * 50
+        #print BestActionDict
         foodLeft = len(self.getFood( gameState ).asList())
         if foodLeft <= 2:
             bestDist = 9999
@@ -98,12 +104,14 @@ class QJT( CaptureAgent ):
                     bestAction = action
                     bestDist = dist
             return bestAction
-
-        global BestAction
-        if BestAction is not None:
-            bestAction = BestAction
-            BestAction = None
-            return bestAction
+        """
+        if self.SerialNum is not None:
+            if BestActionDict.get(self.SerialNum) is not None:
+                print "chooseAction", self.SerialNum, BestActionDict
+                bestAction = BestActionDict[self.SerialNum]
+                BestActionDict[self.SerialNum] = None
+                return bestAction
+	"""
 
         MaxMinScore = -999999
         MinScoreAlliesActionsList = []
@@ -137,13 +145,12 @@ class QJT( CaptureAgent ):
                 BestActionList.append( AlliesAction )
 
         ChosedAlliesAction = random.sample( BestActionList, 1 )[0]
-        global BestAction
         index = self.allies.index( self.index )
         for agentIndex, action in ChosedAlliesAction:
             if agentIndex == self.index:
                 bestAction = action
-            else:
-                BestAction = action
+            #elif self.SerialNum is not None:
+            #    BestAction[self.SerialNum] = action
         #print "x" * 50
         return bestAction
 
@@ -324,7 +331,7 @@ class QJT( CaptureAgent ):
 
             features["Pacman-Food-minDistance"] = d1 + d2
         except:
-            print "All food have been eaten"
+            #print "All food have been eaten"
             pass
 
         try:
@@ -336,7 +343,7 @@ class QJT( CaptureAgent ):
                     minMinDistanceToCapsule = minDistanceToCapsule
             features[ "Pacman-Capsule-minDistance"] = minMinDistanceToCapsule
         except:
-            print "There is no Capsule"
+            #print "There is no Capsule"
             pass
 
         ### CheckDeath
@@ -506,43 +513,45 @@ class QJT( CaptureAgent ):
         Normally, weights do not depend on the gamestate.  They can be either
         a counter or a dictionary.
         """
-        #return self.Param_Weights
-        return {"stopped":-20,
-		    "reverse":-20,
+        if self.Param_Weights is not None and len( self.Param_Weights ) != 0:
+            return self.Param_Weights
+        else:
+            return {"stopped":-2,
+		    "reverse":-2,
 
             "TeamDistance":0,
-       		"eat-new-food":10,
-      		"return-new-food":40,
-		    "return-new-food-number":10,
-        	"eat-capsules":60,
+       		"eat-new-food":1,
+      		"return-new-food":4,
+		    "return-new-food-number":1,
+        	"eat-capsules":6,
 
-            "Ally-Pacman-Die":-100000,
-            "Ally-Pacman-Die-food":-1000,
-		    "Ally-Ghost-Die":-100000,
-            "Enemy-Pacman-Die":500,
-            "Enemy-Pacman-Die-food":5,
-		    "Enemy-Ghost-Die":500,
+            "Ally-Pacman-Die":-10000,
+            "Ally-Pacman-Die-food":-100,
+		    "Ally-Ghost-Die":-10000,
+            "Enemy-Pacman-Die":50,
+            "Enemy-Pacman-Die-food":0.5,
+		    "Enemy-Ghost-Die":50,
 
-            "Shift-Pacman-Ghost":20,
-            "Shift-Ghost-Pacman":-20,
+            "Shift-Pacman-Ghost":2,
+            "Shift-Ghost-Pacman":-2,
 
-            "NormalPacman-Invader-minDistance":-0.5,
-		    "Pacman-Food-minDistance":-1,
-            "Pacman-Capsule-minDistance":-25,
+            "NormalPacman-Invader-minDistance":-0.05,
+		    "Pacman-Food-minDistance":-0.1,
+            "Pacman-Capsule-minDistance":-2.5,
          	"Pacman-UnScaredEnemy-minDistance":0,
             "Pacman-UnScaredEnemy-minDistance-numCarrying":0,
             "Pacman-UnScaredEnemy-flee-intercept-minDistance":0,
-            "Pacman-UnScaredEnemy-flee-isIntercept":-20,#,100,
+            "Pacman-UnScaredEnemy-flee-isIntercept":-2,#,100,
             "Pacman-UnScaredEnemy-capsule-intercept-minDistance":0,#-20,
             "Pacman-UnScaredEnemy-capsule-isIntercept":0,#-200,
             "Pacman-ScaredEnemy-flee-isIntercept":0,
           	"ScaringGhost-Invader-minDistance":0,
             "ScaringGhost-EnenmyField-minDistance":0,
-            "NormalGhost-Invader-minDistance":-20,#10,
+            "NormalGhost-Invader-minDistance":-2,#10,
             "NormalGhost-Invader-flee-intercept-distance":0,#2,
-            "NormalGhost-Invader-flee-isIntercept":20,#100,
-            "NormalGhost-Invader-capsule-intercept-distance":1,#4,
-            "NormalGhost-Invader-capsule-isIntercept":40,#200,
+            "NormalGhost-Invader-flee-isIntercept":2,#100,
+            "NormalGhost-Invader-capsule-intercept-distance":0.1,#4,
+            "NormalGhost-Invader-capsule-isIntercept":4,#200,
             }
 
 

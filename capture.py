@@ -67,7 +67,7 @@ TOTAL_FOOD = 60
 
 DUMP_FOOD_ON_DEATH = True  # if we have the gameplay element that dumps dots on death
 
-SCARED_TIME = 40
+SCARED_TIME = 10
 
 
 def noisyDistance(pos1, pos2):
@@ -792,7 +792,7 @@ def parseAgentArgs(str):
     return opts
 
 
-def readCommand(argv):
+def readCommand( argv = None, dict_argv = None ):
     """
     Processes the command used to run pacman from the command line.
     """
@@ -831,7 +831,7 @@ def readCommand(argv):
     parser.add_option('-l', '--layout', dest='layout',
                       help=default(
                           'the LAYOUT_FILE from which to load the map layout; use RANDOM for a random maze; use RANDOM<seed> to use a specified random seed, e.g., RANDOM23'),
-                      metavar='LAYOUT_FILE', default='defaultCapture')
+                      metavar='LAYOUT_FILE', default='fastCapture')
     parser.add_option('-t', '--textgraphics', action='store_true', dest='textgraphics',
                       help='Display output as text only', default=False)
 
@@ -844,7 +844,7 @@ def readCommand(argv):
     parser.add_option('-z', '--zoom', type='float', dest='zoom',
                       help=default('Zoom in the graphics'), default=1)
     parser.add_option('-i', '--time', type='int', dest='time',
-                      help=default('TIME limit of a game in moves'), default=1200, metavar='TIME')
+                      help=default('TIME limit of a game in moves'), default=400, metavar='TIME')
     parser.add_option('-n', '--numGames', type='int',
                       help=default('Number of games to play'), default=1)
     parser.add_option('-f', '--fixRandomSeed', action='store_true',
@@ -857,8 +857,18 @@ def readCommand(argv):
                       help=default('How many episodes are training (suppresses output)'), default=0)
     parser.add_option('-c', '--catchExceptions', action='store_true', default=False,
                       help='Catch exceptions and enforce time limits')
+    if dict_argv is None:
+        options, otherjunk = parser.parse_args(argv)
+        Param_Weights_1 = None
+        Param_Weights_2 = None
+        serial_num = None
+    else:
+        options = dict_argv
+        Param_Weights_1 = options.Param_Weights
+        Param_Weights_2 = options.Param_Weights
+        serial_num = options.serial_num[0]
+        otherjunk = [] 
 
-    options, otherjunk = parser.parse_args(argv)
     assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)
     args = dict()
 
@@ -906,9 +916,9 @@ def readCommand(argv):
         blueArgs['numTraining'] = options.numTraining
     nokeyboard = options.textgraphics or options.quiet or options.numTraining > 0
     print '\nRed team %s with %s:' % (options.red, redArgs)
-    redAgents = loadAgents(True, options.red, nokeyboard, redArgs)
+    redAgents = loadAgents(True, options.red, nokeyboard, redArgs, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2, serial_num = serial_num)
     print '\nBlue team %s with %s:' % (options.blue, blueArgs)
-    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs)
+    blueAgents = loadAgents(False, options.blue, nokeyboard, blueArgs, Param_Weights_1, Param_Weights_2, serial_num = serial_num)
     args['agents'] = sum([list(el) for el in zip(redAgents, blueAgents)], [])  # list of agents
 
     numKeyboardAgents = 0
@@ -945,6 +955,10 @@ def readCommand(argv):
     args['numTraining'] = options.numTraining
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
+    if argv is not None:
+        args["serial_num"] = "Origin1"
+    else:
+        args["serial_num"] = options.serial_num
     return args
 
 
@@ -960,7 +974,7 @@ def randomLayout(seed=None):
 import traceback
 
 
-def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
+def loadAgents(isRed, factory, textgraphics, cmdLineArgs, Param_Weights_1 = None, Param_Weights_2 = None, serial_num = None):
     "Calls agent factories and returns lists of agents"
     try:
         if not factory.endswith(".py"):
@@ -992,7 +1006,7 @@ def loadAgents(isRed, factory, textgraphics, cmdLineArgs):
     if not isRed:
         indexAddend = 1
     indices = [2 * i + indexAddend for i in range(2)]
-    return createTeamFunc(indices[0], indices[1], isRed, **args)
+    return createTeamFunc(indices[0], indices[1], isRed, Param_Weights_1 = Param_Weights_1, Param_Weights_2 = Param_Weights_2, serial_num =  serial_num)
 
 def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamName):
     rules = CaptureRules()
@@ -1014,7 +1028,7 @@ def replayGame(layout, agents, actions, display, length, redTeamName, blueTeamNa
 
 
 def runGames(layouts, agents, display, length, numGames, record, numTraining, redTeamName, blueTeamName,
-             muteAgents=False, catchExceptions=False):
+             muteAgents=False, catchExceptions=False, serial_num = None):
     rules = CaptureRules()
     games = []
 
@@ -1022,6 +1036,8 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         print 'Playing %d training games' % numTraining
 
     for i in range(numGames):
+	print "numGame:", i
+        print "=" * 50
         beQuiet = i < numTraining
         layout = layouts[i]
         if beQuiet:
@@ -1053,17 +1069,21 @@ def runGames(layouts, agents, display, length, numGames, record, numTraining, re
         scores = [game.state.data.score for game in games]
         redWinRate = [s > 0 for s in scores].count(True) / float(len(scores))
         blueWinRate = [s < 0 for s in scores].count(True) / float(len(scores))
-        print 'Average Score:', sum(scores) / float(len(scores))
-        print 'Scores:       ', ', '.join([str(score) for score in scores])
+        #print 'Average Score:', sum(scores) / float(len(scores))
+        #print 'Scores:       ', ', '.join([str(score) for score in scores])
         print 'Red Win Rate:  %d/%d (%.2f)' % ([s > 0 for s in scores].count(True), len(scores), redWinRate)
-        print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
-        print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
-    return games
+        #print 'Blue Win Rate: %d/%d (%.2f)' % ([s < 0 for s in scores].count(True), len(scores), blueWinRate)
+        #print 'Record:       ', ', '.join([('Blue', 'Tie', 'Red')[max(0, min(2, 1 + s))] for s in scores])
+    return scores, redWinRate, blueWinRate, serial_num
 
 
 def save_score(game):
     with open('score', 'w') as f:
         print >> f, game.state.data.score
+
+def MP( dict_argv = None ):
+    option = readCommand( dict_argv = dict_argv )
+    return runGames( **option )
 
 if __name__ == '__main__':
 
